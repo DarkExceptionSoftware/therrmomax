@@ -1,5 +1,8 @@
 package com.darkexceptionsoftware.thermomax_calendar.data;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,14 +10,37 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-public class Indrigent implements Serializable {
+public class Indrigent implements Serializable , Parcelable {
     private String name;
     private Float amount;
     private String amountof;
     private String sortof;
 
+    public Indrigent() {
+    }
 
+    public Indrigent(Parcel in) {
+        name = in.readString();
+        if (in.readByte() == 0) {
+            amount = null;
+        } else {
+            amount = in.readFloat();
+        }
+        amountof = in.readString();
+        sortof = in.readString();
+    }
 
+    public static final Creator<Indrigent> CREATOR = new Creator<Indrigent>() {
+        @Override
+        public Indrigent createFromParcel(Parcel in) {
+            return new Indrigent(in);
+        }
+
+        @Override
+        public Indrigent[] newArray(int size) {
+            return new Indrigent[size];
+        }
+    };
 
     public String getAmountof() {
         return amountof;
@@ -70,5 +96,24 @@ public class Indrigent implements Serializable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+
+        parcel.writeString(name);
+        if (amount == null) {
+            parcel.writeByte((byte) 0);
+        } else {
+            parcel.writeByte((byte) 1);
+            parcel.writeFloat(amount);
+        }
+        parcel.writeString(amountof);
+        parcel.writeString(sortof);
     }
 }

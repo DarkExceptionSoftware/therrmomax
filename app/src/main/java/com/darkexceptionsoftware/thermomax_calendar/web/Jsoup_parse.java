@@ -324,37 +324,43 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
             if (_table[i].length() < 4)
                 continue;
 
-            String[] row = _table[i].split(";");
+            String _row = _table[i].trim();
+            if (_row.substring(_row.length()-1).equals(";"))
+                _row = _row.substring(0, _row.length()-1);
 
-            Log.d("PARSE", "<" + row.toString() + ">");
+            String[] row = _row.split(";");
 
-            Float amount;
-            String amountOf;
-            String name;
 
-            if (row[0].equals("")) {
 
-                try {
-                    amount = Float.parseFloat(row[1].trim());
-                    amountOf = "X";
-                    name = row[row.length - 1].trim();
 
-                } catch (NumberFormatException e) {
-                    amount = 0f;
-                    amountOf = row[0].trim();
-                    name = row[1].trim();
 
-                }
+            Float amount = 0f;
+            String amountOf = "";
+            String name = "";
+
+            if (row[0].isEmpty()) {
+
+                    if (row.length == 2){
+                        name = row[1].trim();
+                    }
+
+                    if (row.length == 3){
+                        amountOf = row[1].trim();
+                        name = row[2].trim();
+                    }
+
             }else{
                 amount = Float.parseFloat(row[0].trim());
 
-                if (row[row.length - 1].trim().equals("")){
+                if (row.length == 2){
                     name = row[1].trim();
                     amountOf = "x";
+                }else{
+                    amountOf = row[1].trim();
+                    name = row[2].trim();
                 }
 
-                amountOf = row[1].trim();
-                name = row[row.length-1].trim();
+
             }
 
             Indrigent indrigent = new Indrigent();
@@ -362,6 +368,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
             indrigent.setAmountof(amountOf);
             indrigent.setName(name);
 
+            Log.d("IND",amount.toString() + " - " + amountOf + " - " + name);
 
             indrigentslist.add(indrigent);
         }

@@ -107,6 +107,11 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
     }
 
     @Override
+    public void onItemlongClick(int position, String action) {
+
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);

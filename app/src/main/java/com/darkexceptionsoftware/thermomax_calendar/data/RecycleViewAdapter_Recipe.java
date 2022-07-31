@@ -126,6 +126,14 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
                     itemListener.onItemClick(getAdapterPosition(), "show");
                 }
             });
+            rv_rcp_cardView.setOnLongClickListener(new View.OnLongClickListener(){
+                @Override
+                public boolean onLongClick(View view) {
+                    itemListener.onItemlongClick(getAdapterPosition(), "show");
+                    return true;
+                }
+            });
+
         }
 
 

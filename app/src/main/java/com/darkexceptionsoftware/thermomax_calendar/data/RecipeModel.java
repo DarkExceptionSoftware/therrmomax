@@ -48,6 +48,7 @@ public class RecipeModel implements Serializable, Parcelable {
         ImagePath = in.readString();
         tips = in.readString();
         CryptedID = in.readString();
+        INDRIGENTS = in.createTypedArrayList(Indrigent.CREATOR);
     }
 
     @Override
@@ -60,6 +61,7 @@ public class RecipeModel implements Serializable, Parcelable {
         dest.writeString(ImagePath);
         dest.writeString(tips);
         dest.writeString(CryptedID);
+        dest.writeTypedList(INDRIGENTS);
     }
 
     @Override
@@ -307,7 +309,7 @@ public class RecipeModel implements Serializable, Parcelable {
             }
         // boolean c_success = serializeCook(_RecDir, _filename);
         boolean i_success = serializeIndrigents(_RecDir, _filename);
-            return true;
+            return i_success;
     }
 
     public boolean serializeCook(String _RecDir, String _filename){
@@ -353,6 +355,15 @@ public class RecipeModel implements Serializable, Parcelable {
     }
 
 
+    public boolean delete(String _RecDir, String _filename){
+        boolean myFile;
+        myFile = new File(_RecDir + _filename + "/",  "recipe.rcp").delete();
+        myFile = new File(_RecDir + _filename + "/",  "indrigents.ind").delete();
+        myFile = new File(_RecDir + _filename + "/",  "image.png").delete();
+
+        return myFile;
+    }
+
     public boolean deserialize(String _RecDir, String _filename){
 
         RecipeModel o = null;
@@ -373,6 +384,7 @@ public class RecipeModel implements Serializable, Parcelable {
                 return false;
             }
 
+            this.id = o.getId();
         this.name =  o.getName();
         this.creator =  o.getCreator();
         this.Summary =  o.getSummary();

@@ -26,6 +26,11 @@
             android:label="@string/title_activity_confirm"
             android:theme="@style/MyTransp"/>
         <activity
+            android:name=".popup.ContextMenu"
+            android:exported="false"
+            android:label="@string/title_activity_confirm"
+            android:theme="@style/MyTransp"/>
+        <activity
             android:name=".popup.Detail"
             android:exported="false"
             android:label="@string/title_activity_confirm"

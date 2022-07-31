@@ -36,6 +36,7 @@ import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentKochbuchBinding;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
+import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Detail;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
 import com.darkexceptionsoftware.thermomax_calendar.web.WebViewClass;
@@ -131,7 +132,13 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 continue;
 
             Boolean success = recipe.deserialize(RecDir,recipeitem);
-            Recipes.add(recipe);
+
+            if (success){
+                Recipes.add(recipe);
+            }else{
+                recipe.delete(RecDir,recipeitem);
+
+            }
 
         }
 
@@ -199,7 +206,9 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 parseUrl(url);
         }
 
+        if (action.equals("refresh")){
 
+        }
     }
 
 
@@ -238,10 +247,23 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         }
     }
 
+
+    @Override
+    public void onItemlongClick(int position, String action){
+        Intent intent = new Intent(getContext(), ContextMenu.class);
+        // TextView editText = (TextView) findViewById(R.id.confirm_label);
+        intent.putExtra("action", "show");
+        intent.putExtra("pos", position);
+        intent.putExtra("info", (Parcelable) Recipes.get(position));
+        startActivityForResult(intent, 1);
+    }
+
+
     @Override
     public void onItemClick(int position, String action) {
         if (action.equals("show")) {
             // confirm.showPopupWindow(activityReference.getCurrentFocus());
+
 
 
             Intent intent = new Intent(getContext(), Detail.class);
