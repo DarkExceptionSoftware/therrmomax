@@ -52,6 +52,20 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/chef_rechts" />
 
+                <Button
+                    android:id="@+id/cmv_3_confirm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@color/red"
+                    android:text="Sure?"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@+id/cmv_3"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/cmv_3"
+                    app:layout_constraintTop_toTopOf="@+id/cmv_3"
+                    tools:visibility="visible" />
+
                 <DatePicker
                     android:id="@+id/cm_dp"
                     android:layout_width="0dp"
@@ -142,7 +156,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cmv_3"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_marginTop="8dp"
@@ -153,7 +167,7 @@
                     app:cardBackgroundColor="@color/colorPrimaryDark"
                     app:cardCornerRadius="10dp"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/cmv_3_confirm"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/cmv_2"
                     tools:visibility="visible">
@@ -171,6 +185,7 @@
                         android:textSize="20sp" />
                 </androidx.cardview.widget.CardView>
             </androidx.constraintlayout.widget.ConstraintLayout>
+
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </RelativeLayout>

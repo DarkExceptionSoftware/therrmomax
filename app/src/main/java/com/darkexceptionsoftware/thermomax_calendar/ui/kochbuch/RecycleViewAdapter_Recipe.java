@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Handler;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -144,6 +145,9 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
 
 
         holder.rv_rcp_recipe.setText(Recipes.get(position).getName());
+        if (Recipes.get(position).getName().length() > 20)
+            holder.rv_rcp_recipe.setTextSize(TypedValue.COMPLEX_UNIT_SP,12);
+
         holder.rv_rcp_autor.setText(Recipes.get(position).getCreator());
 
         String url = Recipes.get(position).getImagePath();

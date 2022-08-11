@@ -54,7 +54,7 @@ public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleV
     MainActivity ref;
     List<RecipeModel> Recipes;
     boolean todayIsSet = false;
-    Date lastdate ;
+    Date lastdate;
 
 
     public RecycleViewAdapter_RecipeDate(Activity activityReference, ArrayList<DateModel> DateModels, RecycleViewOnClickListener recyclerViewClickListener) {
@@ -108,112 +108,120 @@ public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleV
 
         boolean norecipe = true;
 
-        if (Recipe == null){
+        if (Recipe == null && DateModels.get(position).getModel() != 0) {
+            holder.rv_recipe.setText("Recipe "+ DateModels.get(position).getModel()+" not found");
+            holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.cardview_error, context.getTheme()));
+            holder.rv_cardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    itemListener.onItemClick(position, "deleteDirectly");
+                }
+            });
             norecipe = true;
-        }
+        } else {
 
-        if (DateModels.get(position).getStatus() != -1)
-            norecipe = false;
-
-
-        String _year = year.format(date);
-        String _month = month.format(date);
-        String _now = now.format(date);
-
-        holder.rv_year.setVisibility(View.INVISIBLE);
-        holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.cardview, context.getTheme()));
-        //holder.rv_fab.setVisibility(View.GONE);
-        //holder.rv_fab_add.setVisibility(View.GONE);
-        holder.rv_day_name.setText(day.format(date));
-        holder.rv_day_date.setText(daydate.format(date));
-        holder.rv_month.setText(_month);
-        holder.rv_year.setText(_year);
-        holder.rv_separator.setVisibility(View.GONE);
-        holder.rv_month.setVisibility(View.GONE);
-        holder.rv_separator.setImageResource(R.color.black);
-        holder.rv_back.setBackgroundColor(DateModels.get(position).getBackcolor());
+            if (DateModels.get(position).getStatus() != -1)
+                norecipe = false;
 
 
-        if (position > 0) {
-            // get last item
-            Long old_date = DateModels.get(position - 1).getDate();
-            lastDay = daydate.format(old_date);
-            lastMonth = month.format(old_date);
-            lastyear = year.format(old_date);
-            lastnow = now.format(old_date);
-        }
+            String _year = year.format(date);
+            String _month = month.format(date);
+            String _now = now.format(date);
+
+            holder.rv_year.setVisibility(View.INVISIBLE);
+            holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.cardview, context.getTheme()));
+            //holder.rv_fab.setVisibility(View.GONE);
+            //holder.rv_fab_add.setVisibility(View.GONE);
+            holder.rv_day_name.setText(day.format(date));
+            holder.rv_day_date.setText(daydate.format(date));
+            holder.rv_month.setText(_month);
+            holder.rv_year.setText(_year);
+            holder.rv_separator.setVisibility(View.GONE);
+            holder.rv_month.setVisibility(View.GONE);
+            holder.rv_separator.setImageResource(R.color.black);
+            holder.rv_back.setBackgroundColor(DateModels.get(position).getBackcolor());
 
 
-        Boolean isToday = false;
+            if (position > 0) {
+                // get last item
+                Long old_date = DateModels.get(position - 1).getDate();
+                lastDay = daydate.format(old_date);
+                lastMonth = month.format(old_date);
+                lastyear = year.format(old_date);
+                lastnow = now.format(old_date);
+            }
 
-        // VERALTET ???
-        if (today.after(new Date(date))) {
 
-            holder.rv_cardView.setCardBackgroundColor(DateModels.get(position).getBackcolor());
-        }
+            Boolean isToday = false;
 
-        // HEUTE ???
-        if (now.format(date).equals(now.format(today))) {
-            isToday = true;
-        }
+            // VERALTET ???
+            if (today.after(new Date(date))) {
 
-        // IF TODAY, MARK THE DATE
-        if (isToday) {
-            holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.cardview_today, context.getTheme()));
-            if (!todayIsSet){
-                holder.rv_month.setText(holder.rv_month.getText().toString() + " - TODAY");
+                holder.rv_cardView.setCardBackgroundColor(DateModels.get(position).getBackcolor());
+            }
+
+            // HEUTE ???
+            if (now.format(date).equals(now.format(today))) {
+                isToday = true;
+            }
+
+            // IF TODAY, MARK THE DATE
+            if (isToday) {
+                holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.cardview_today, context.getTheme()));
+                if (!todayIsSet) {
+                    holder.rv_month.setText(holder.rv_month.getText().toString() + " - TODAY");
+                    holder.rv_separator.setVisibility(View.VISIBLE);
+                    holder.rv_month.setVisibility(View.VISIBLE);
+                    // NICHT DAS SELBE JAHR?
+                    if (!lastyear.equals(_year)) {
+                        holder.rv_year.setVisibility(View.VISIBLE);
+                    }
+                }
+                todayIsSet = true;
+
+
+            }
+
+
+            // NICHT DER SELBE MONAT?
+            if (!lastMonth.equals(_month) || !lastyear.equals(_year) && lastMonth.equals(_month)) {
                 holder.rv_separator.setVisibility(View.VISIBLE);
                 holder.rv_month.setVisibility(View.VISIBLE);
                 // NICHT DAS SELBE JAHR?
                 if (!lastyear.equals(_year)) {
                     holder.rv_year.setVisibility(View.VISIBLE);
                 }
-            }
-            todayIsSet = true;
 
-
-        }
-
-
-        // NICHT DER SELBE MONAT?
-        if (!lastMonth.equals(_month) || !lastyear.equals(_year) && lastMonth.equals(_month)) {
-            holder.rv_separator.setVisibility(View.VISIBLE);
-            holder.rv_month.setVisibility(View.VISIBLE);
-            // NICHT DAS SELBE JAHR?
-            if (!lastyear.equals(_year)) {
-                holder.rv_year.setVisibility(View.VISIBLE);
             }
 
-        }
-
-        // DERSELBE TAG?
-        if (!now.equals(lastnow)) {
-            holder.rv_day_date.setVisibility(View.VISIBLE);
-            holder.rv_day_name.setVisibility(View.VISIBLE);
-        }
+            // DERSELBE TAG?
+            if (!now.equals(lastnow)) {
+                holder.rv_day_date.setVisibility(View.VISIBLE);
+                holder.rv_day_name.setVisibility(View.VISIBLE);
+            }
 
 
-        if (DateModels.get(position).getStatus() == -1) {
+            if (DateModels.get(position).getStatus() == -1) {
 
-            // KEIN WIRKLICHER EINTRAG, SONDERN HEUTE
-            //holder.rv_fab_add.setVisibility(View.VISIBLE);
-            holder.rv_recipe.setText(DateModels.get(position).getName());
-            holder.rv_time.setText("Wähle ein Rezeot mit dem Add-Button aus!");
+                // KEIN WIRKLICHER EINTRAG, SONDERN HEUTE
+                //holder.rv_fab_add.setVisibility(View.VISIBLE);
+                holder.rv_recipe.setText(DateModels.get(position).getName());
+                holder.rv_time.setText("Wähle ein Rezeot mit dem Add-Button aus!");
 
-        } else {
+            } else {
 
-            //holder.rv_fab.setVisibility(View.VISIBLE);
+                //holder.rv_fab.setVisibility(View.VISIBLE);
 
-            if (Recipe != null)
-                holder.rv_recipe.setText(Recipe.getName());
+                if (Recipe != null)
+                    holder.rv_recipe.setText(Recipe.getName());
 
-            holder.rv_time.setText(time.format(date));
-        }
+                holder.rv_time.setText(time.format(date));
+            }
 
-        if (Recipe != null) {
-            holder.rv_cardView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+            if (Recipe != null) {
+                holder.rv_cardView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
 
 
                         Intent intent = new Intent(ref.getApplicationContext(), Detail.class);
@@ -224,21 +232,19 @@ public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleV
                         ref.startActivity(intent);
                     }
 
-            });
+                });
 
-            holder.rv_cardView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
+                holder.rv_cardView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
 
-                    itemListener.onItemlongClick(position, "show");
+                        itemListener.onItemlongClick(position, "show");
 
-                    return true;
-                }
-
-            });
-
+                        return true;
+                    }
+                });
+            }
         }
-
     }
 
     @Override

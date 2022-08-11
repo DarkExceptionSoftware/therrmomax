@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.renderscript.ScriptGroup;
 import android.text.Html;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -80,6 +81,10 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
 
 
             rv_rcp_d_recipe.setText(info.getName());
+
+            if (info.getName().length() > 25)
+                rv_rcp_d_recipe.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);
+
             rv_rcp_d_autor.setText(info.getCreator());
 
 

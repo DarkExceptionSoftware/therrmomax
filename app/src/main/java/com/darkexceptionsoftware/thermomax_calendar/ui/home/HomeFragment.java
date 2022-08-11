@@ -119,6 +119,12 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
             startActivityForResult(intent, 1);
         }
 
+        if (action.equals("deleteDirectly")) {
+            db.userDao().delete(_RecipeDates.get(position));
+            _RecipeDates.remove(position);
+            rva.notifyDataSetChanged();
+        }
+
     }
 
     @Override

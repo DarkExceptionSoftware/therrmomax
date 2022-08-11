@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -86,6 +87,7 @@ public class ContextMenu_Kalender extends AppCompatActivity {
         CardView cmv_1, cmv_2, cmv_3;
         DatePicker cm_dp;
 
+        Button button = findViewById(R.id.cmv_3_confirm);
 
 
         b.cmv1.setOnClickListener(new View.OnClickListener() {
@@ -111,13 +113,25 @@ public class ContextMenu_Kalender extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(getApplicationContext(), Confirm.class);
-                intent.putExtra("action", "question");
-                intent.putExtra("pos", position);
-                intent.putExtra("info", "Möchtest du den Termin\nwirklich Löschen?");
-                startActivityForResult(intent, 1);
+                button.setVisibility(View.VISIBLE);
             }
         });
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                button.setVisibility(View.VISIBLE);
+
+                Intent returnIntent = new Intent(getApplicationContext(), Confirm.class);
+                returnIntent.putExtra("action", "question");
+                returnIntent.putExtra("pos", position);
+                setResult(Activity.RESULT_OK, returnIntent);
+                finish();
+            }
+        });
+
+
 
 
     }

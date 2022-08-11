@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -90,6 +91,7 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         cmv_2_message = findViewById(R.id.cmv_2_message);
         cmv_3_message = findViewById(R.id.cmv_3_message);
 
+        Button button = findViewById(R.id.cmv_3_confirm);
 
         cmv_1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,6 +115,13 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         cmv_3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                button.setVisibility(View.VISIBLE);
+            }
+        });
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 String RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
                 delete(RecDir, info.getId() + "");
 
@@ -124,8 +133,6 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
                 finish();
             }
         });
-
-
     }
 
 
