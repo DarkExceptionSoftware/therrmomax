@@ -1,57 +1,49 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.kochbuch;
 
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeDates;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeModel;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.setOnSelectedListener;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.icu.text.DateFormat;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
-import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewAdapter_Recipe;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewAdapter_RecipeDate;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
+import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
 import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
-import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
+import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentKochbuchBinding;
-import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
-import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu;
+import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_kochbuch;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Detail;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
 import com.darkexceptionsoftware.thermomax_calendar.web.WebViewClass;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.MalformedURLException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Date;
 
 public class KochbuchFragment extends Fragment implements RecycleViewOnClickListener, action_bar_access {
 
@@ -60,34 +52,47 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
     private Activity activityReference;
     private RecyclerView recyclerView;
     private RecycleViewAdapter_Recipe rva;
-    ArrayList<RecipeModel> Recipes;
 
+    private fetch_recipes fr;
+
+    public RecycleViewAdapter_Recipe getRva() {
+        return rva;
+    }
+
+    public void setRva(RecycleViewAdapter_Recipe rva) {
+        this.rva = rva;
+    }
+
+    public ArrayList<RecipeModel> getRecipes() {
+        return _RecipeModel;
+    }
+
+    public void setRecipes(ArrayList<RecipeModel> recipes) {
+        _RecipeModel = recipes;
+    }
+
+    private MainActivity ref;
     RecipeModel recipe;
+    String RecDir;
 
     public KochbuchFragment() {
-        Recipes = new ArrayList<>();
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         KochbuchViewModel galleryViewModel =
                 new ViewModelProvider(this).get(KochbuchViewModel.class);
+        activityReference = getActivity();
+
+         ref = (MainActivity) activityReference;
 
         binding = FragmentKochbuchBinding.inflate(inflater, container, false);
+        RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
 
         View root = binding.getRoot();
 
-        activityReference = getActivity();
 
-        Recipes.clear();
-
-        try {
-            fetch_recipes();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        _RecipeModel = ref.get_RecipeModel();
 
         setOnSelectedListener(this);
 
@@ -96,53 +101,20 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         // galleryViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         recyclerView = binding.rcvCookbook;
-        rva = new RecycleViewAdapter_Recipe(this,getContext(), Recipes,this);
+        rva = new RecycleViewAdapter_Recipe(this, getContext(), RecycleViewAdapter_Recipe.ViewMode.RECIPEBOOK, this);
         recyclerView.setAdapter(rva);
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rva.getSmoothScroller().setTargetPosition(MainActivity.get_rv_today_position());
         recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
 
 
-
-
-
-
+       // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
+       // fr.execute();
 
         return root;
     }
 
-    private void fetch_recipes() throws MalformedURLException, PackageManager.NameNotFoundException {
-        final TextView textView = binding.textUrl;
-        String RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
 
-        String result = "";
-        File directory = new File(RecDir);
-        List<String> files = Arrays.asList(directory.list());
-        Collections.sort(files,Collections.reverseOrder());
-
-
-
-
-        List<String> cache = new ArrayList();
-
-        for (String recipeitem : files){
-            recipe = new RecipeModel(activityReference.getApplicationContext());
-
-            if (!recipeitem.contains(".rcp"))
-                continue;
-
-            Boolean success = recipe.deserialize(RecDir,recipeitem);
-
-            if (success){
-                Recipes.add(recipe);
-            }else{
-                recipe.delete(RecDir,recipeitem);
-
-            }
-
-        }
-
-    }
 
     @Override
     public void onDestroyView() {
@@ -164,11 +136,7 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
 
         startActivityForResult(intent, 1);
 
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        if (Build.VERSION.SDK_INT >= 26) {
-            ft.setReorderingAllowed(false);
-        }
-        ft.detach(this).attach(this).commit();
+
     }
 
     @Override
@@ -187,33 +155,102 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         super.onActivityResult(requestCode, resultCode, data);
         int position = -1;
         String action = "";
-        String url  = "about:blank";
-        Bundle extras = data.getExtras();
+        String url = "about:blank";
+        try {
+            Bundle extras = data.getExtras();
 
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            if (extras != null) {
-                action = extras.getString("action");
+
+            if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+                if (extras != null) {
+                    action = extras.getString("action");
+                }
             }
-        }
-        if (action.equals("findWeb")){
-            url = extras.getString("result");
-            parseUrl(url);
-        }
 
-        if (action.equals("question")){
-            position = extras.getInt("pos");
-            if (position != -1)
-                parseUrl(url);
-        }
 
-        if (action.equals("refresh")){
+            if (action.equals("findWeb")) {
+
+                url = extras.getString("result");
+
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        fr = new fetch_recipes(activityReference, rva, _RecipeModel);
+
+                        fr.execute();
+                        // rva.notifyItemInserted(0);
+                        // recyclerView.invalidate();
+                    }
+                };
+
+                Handler h = new Handler();
+                h.postDelayed(r, 1000);
+
+            }
+
+            if (action.equals("appointment")) {
+                position = extras.getInt("pos");
+                long date = extras.getLong("date");
+                UserDao userDao = ref.db.userDao();
+
+                DateModel new_date = new DateModel(_RecipeModel.get(position).getId(), date, "self",0,0);
+                try {
+                    userDao.insertAll(new_date);
+
+                }catch (Exception e){
+                    Writer writer = new StringWriter();
+                    e.printStackTrace(new PrintWriter(writer));
+                    String s = writer.toString();
+
+                    Log.d("DAO",s);
+                }
+
+                _RecipeDates.add(new_date);
+
+                DateFormat now = new SimpleDateFormat("dd-MM-yyyy");
+
+                DateModel todelete = null;
+                boolean foundTodayRecipes = false;
+                for (DateModel temp : _RecipeDates) {
+                    if (now.format(temp.getDate()).equals(now.format(new Date())) && !temp.getUser().equals("Thermomax Info"))
+                        foundTodayRecipes = true;
+
+                    if (temp.getUser().equals("Thermomax Info"))
+                        todelete = temp;
+                }
+                if (todelete != null)
+                    _RecipeDates.remove(todelete);
+
+                if (!foundTodayRecipes)
+                    _RecipeDates.add(new DateModel(new Long(0), new Date().getTime(), "Fritz", -1, 0));
+
+
+                _RecipeDates.sort(Comparator.comparing(DateModel::getDate));
+
+
+            }
+
+            if (action.equals("question")) {
+                position = extras.getInt("pos");
+                if (position != -1)
+                    parseUrl(url);
+            }
+
+            if (action.equals("delete")) {
+                position = extras.getInt("pos");
+
+                recipe = _RecipeModel.get(position);
+                recipe.delete(RecDir, recipe.getId() + ".rcp");
+                _RecipeModel.remove(position);
+
+                rva.notifyItemRemoved(position);
+            }
+        } catch(Exception e){
 
         }
     }
 
 
-    public void parseUrl(String url)
-    {
+    public void parseUrl(String url) {
         Jsoup_parse Jparse;
 
         try {
@@ -249,12 +286,12 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
 
 
     @Override
-    public void onItemlongClick(int position, String action){
-        Intent intent = new Intent(getContext(), ContextMenu.class);
+    public void onItemlongClick(int position, String action) {
+        Intent intent = new Intent(getContext(), ContextMenu_kochbuch.class);
         // TextView editText = (TextView) findViewById(R.id.confirm_label);
         intent.putExtra("action", "show");
         intent.putExtra("pos", position);
-        intent.putExtra("info", (Parcelable) Recipes.get(position));
+        intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
         startActivityForResult(intent, 1);
     }
 
@@ -265,12 +302,11 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
             // confirm.showPopupWindow(activityReference.getCurrentFocus());
 
 
-
             Intent intent = new Intent(getContext(), Detail.class);
             // TextView editText = (TextView) findViewById(R.id.confirm_label);
             intent.putExtra("action", "show");
             intent.putExtra("pos", position);
-            intent.putExtra("info", (Parcelable) Recipes.get(position));
+            intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
             startActivity(intent);
         }
 

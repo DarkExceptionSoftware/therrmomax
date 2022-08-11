@@ -9,7 +9,7 @@
 
     <string name="menu_home">Essensplan</string>
     <string name="menu_Kochbuch">Kochbuch</string>
-    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_sevenDays">7-Tage-Übersicht</string>
     <string name="title_activity_confirm">Confirm</string>
     <string name="title_activity_webview">WebView</string>
     <string name="hinweis_kochbuch">Bitte füge Rezepte hinzu.</string>

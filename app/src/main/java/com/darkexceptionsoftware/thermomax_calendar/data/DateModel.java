@@ -1,16 +1,60 @@
 package com.darkexceptionsoftware.thermomax_calendar.data;
 
 import android.graphics.Color;
+import android.icu.text.SimpleDateFormat;
+
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import java.util.Calendar;
 import java.util.Date;
 
+@Entity
 public class DateModel {
-    private String modelID;
-    private Date date;
+    @PrimaryKey(autoGenerate = true)
+    public int uid;
+
+    @ColumnInfo(name = "name")
+    private String name;
+
+    @ColumnInfo(name = "creation_date")
+    private Long modelID;
+
+    @ColumnInfo(name = "date")
+    private Long date;
+    @ColumnInfo(name = "user")
     private String user;
+    @ColumnInfo(name = "status")
     private int status;
+    @ColumnInfo(name = "color")
     private int backcolor;
+    private final static SimpleDateFormat format_ymd = new SimpleDateFormat("yyyy-MM-dd");
+    private final static SimpleDateFormat format_day = new SimpleDateFormat("EE");
+
+    public DateModel(Long modelID, Long date, String user, int status, int backcolor) {
+        this.modelID = modelID;
+        this.date = date;
+        this.user = user;
+        this.status = status;
+        this.backcolor = backcolor;
+    }
+
+    public Long getModelID() {
+        return modelID;
+    }
+
+    public void setModelID(Long modelID) {
+        this.modelID = modelID;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public int getBackcolor() {
         return backcolor;
@@ -20,27 +64,32 @@ public class DateModel {
         this.backcolor = backcolor;
     }
 
-    public String getModel() {
+    public Long getModel() {
         return modelID;
     }
 
-    public void setModel(String modelID) {
+    public void setModel(Long modelID) {
         this.modelID = modelID;
     }
 
-    public DateModel(String modelID, Date date, String user, int status, int backcolor) {
-        this.modelID = modelID;
-        this.date = date;
-        this.user = user;
-        this.status = status;
-        this.backcolor = backcolor;
-    }
-
-    public Date getDate() {
+    public Long getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public String getStringDate(){
+
+        String datestring = format_ymd.format(new Date(date));
+        return datestring;
+    }
+
+    public String getDay(){
+
+        String datestring = format_day.format(new Date(date)).replace(".","");
+        return datestring;
+    }
+
+
+    public void setDate(Long date) {
         this.date = date;
     }
 

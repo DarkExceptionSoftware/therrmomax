@@ -1,14 +1,14 @@
-package com.darkexceptionsoftware.thermomax_calendar.ui.slideshow;
+package com.darkexceptionsoftware.thermomax_calendar.ui.sevenDays;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class SlideshowViewModel extends ViewModel {
+public class sevenDaysViewModel extends ViewModel {
 
     private final MutableLiveData<String> mText;
 
-    public SlideshowViewModel() {
+    public sevenDaysViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is slideshow fragment");
     }

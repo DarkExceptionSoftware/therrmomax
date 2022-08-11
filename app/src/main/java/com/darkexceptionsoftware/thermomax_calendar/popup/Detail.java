@@ -35,32 +35,39 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Detail extends AppCompatActivity implements View.OnTouchListener, ViewTreeObserver.OnScrollChangedListener{
+public class Detail extends AppCompatActivity implements View.OnTouchListener, ViewTreeObserver.OnScrollChangedListener {
     private Activity activityReference;
 
     private ScrollView mScrollView;
 
 
+    public Detail() {
+    }
+
+    public Detail(Activity _activityReference) {
+
+        this.activityReference = _activityReference;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         this.activityReference = this;
-       Intent intent = getIntent();
-       int position = intent.getIntExtra("pos", -1);
-       String action = intent.getStringExtra("action");
-       RecipeModel info = intent.getParcelableExtra("info");
+        Intent intent = getIntent();
+        int position = intent.getIntExtra("pos", -1);
+        String action = intent.getStringExtra("action");
+        RecipeModel info = intent.getParcelableExtra("info");
 
 
-       List<Indrigent> indrigents = info.getINDRIGENTS();
+        List<Indrigent> indrigents = info.getINDRIGENTS();
 
 
         if (action.equals("show")) {
             setContentView(R.layout.rcv_row_recipe_detail);
             RcvRowRecipeDetailBinding binding = RcvRowRecipeDetailBinding.inflate(getLayoutInflater());
 
-            TextView rv_rcp_d_recipe, rv_rcp_d_autor, rv_rcp_d_rcp, rv_rcp_d_ind,rv_rcp_d_ind2;
+            TextView rv_rcp_d_recipe, rv_rcp_d_autor, rv_rcp_d_rcp, rv_rcp_d_ind, rv_rcp_d_ind2;
             ImageView rv_rcp_d_img;
             WebView rv_rcp_webview;
 
@@ -76,7 +83,6 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
             rv_rcp_d_autor.setText(info.getCreator());
 
 
-
             long id = info.getId();
 
             String ar = "</p>";
@@ -84,39 +90,35 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
             String _al = "<p style=text-align:left>";
             String builder = "";
             String builder2 = "";
-            builder2 ="<table>";
-            builder2 +="<tr>";
-            builder2 +="<th style=\"width: 100px\">"+_ar+"Menge"+ar+"</th>";
+            builder2 = "<table>";
+            builder2 += "<tr>";
+            builder2 += "<th style=\"width: 100px\">" + _ar + "Menge" + ar + "</th>";
             // builder2 +="<th>Art</th>";
-            builder2 +="<th>" + _al+"Zutat"+ ar+"</th>";
-            builder2 +="</tr>";
+            builder2 += "<th>" + _al + "Zutat" + ar + "</th>";
+            builder2 += "</tr>";
 
 
-            for (Indrigent item : info.getINDRIGENTS()){
-                builder2 +="<tr>";
+            for (Indrigent item : info.getINDRIGENTS()) {
+                builder2 += "<tr>";
 
                 String _t = item.getAmount().toString();
 
-                if (_t.equals("0.0")){
+                if (_t.equals("0.0")) {
                     _t = "";
 
-                }else{
+                } else {
                     _t = _t.replace(".0", "");
 
                 }
-                builder2 +="<td valign=\"top\" style=\"height: 30px\">"+ _ar + "<strong>"+ _t + " " + item.getAmountof() +"</strong>" +ar+"</td>";
+                builder2 += "<td valign=\"top\" style=\"height: 30px\">" + _ar + "<strong>" + _t + " " + item.getAmountof() + "</strong>" + ar + "</td>";
 
-                builder2 +="<td valign=\"top\"><strong>"+ item.getName()+"</strong></td>";
-                builder2 +="</tr>";
+                builder2 += "<td valign=\"top\"><strong>" + item.getName() + "</strong></td>";
+                builder2 += "</tr>";
             }
-            builder2 +="</table>";
+            builder2 += "</table>";
             final String mimeType = "text/html";
             final String encoding = "UTF-8";
             rv_rcp_webview.loadDataWithBaseURL("", builder2, mimeType, encoding, "");
-
-
-
-
 
 
             String rezept = info.getSummary().replace("z. B. ", "z._B._");
@@ -124,33 +126,20 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
             rezept = rezept.replace(". ", ". \n\n");
             rezept = rezept.replace("_", " ");
 
-            rv_rcp_d_rcp.setText(rezept + "\n\n\n" );
-
-
+            rv_rcp_d_rcp.setText(rezept + "\n\n\n");
 
 
             Glide
-                            .with(this)
-                            .load(info.getImagePath())
-                            .centerCrop()
-                            .placeholder(R.drawable.sample)
-                            .into(rv_rcp_d_img);
+                    .with(this)
+                    .load(info.getImagePath())
+                    .centerCrop()
+                    .placeholder(R.drawable.sample)
+                    .into(rv_rcp_d_img);
 
         }
 
 
-
-
     }
-
-    public Detail() {
-    }
-
-    public Detail(Activity _activityReference) {
-
-        this.activityReference = _activityReference;
-    }
-
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -160,12 +149,12 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
 
     @Override
     public void onScrollChanged() {
-       View view = mScrollView.getChildAt(mScrollView.getChildCount() - 1);
-       int topDetector = mScrollView.getScrollY();
-       int bottomDetector = view.getBottom() - (mScrollView.getHeight() + mScrollView.getScrollY());
-       if (bottomDetector == 0) {
+        View view = mScrollView.getChildAt(mScrollView.getChildCount() - 1);
+        int topDetector = mScrollView.getScrollY();
+        int bottomDetector = view.getBottom() - (mScrollView.getHeight() + mScrollView.getScrollY());
+        if (bottomDetector == 0) {
 
-         }
+        }
 
     }
 

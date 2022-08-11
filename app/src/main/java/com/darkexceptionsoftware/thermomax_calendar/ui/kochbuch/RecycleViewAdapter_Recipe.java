@@ -1,11 +1,10 @@
-package com.darkexceptionsoftware.thermomax_calendar.data;
+package com.darkexceptionsoftware.thermomax_calendar.ui.kochbuch;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.icu.text.DateFormat;
 import android.icu.text.SimpleDateFormat;
-import android.media.Image;
+import android.icu.util.Calendar;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,57 +14,107 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
+import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
+import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.LogRecord;
+import java.util.HashMap;
+import java.util.List;
 
 public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewAdapter_Recipe.MyViewHolder> {
 
     private static RecycleViewOnClickListener itemListener;
 
+    public static enum ViewMode {
+        RECIPEBOOK("Recipebook", 0),
+        WEEKLIST("Weeklist", 1);
 
+        private String stringValue;
+        private int intValue;
+        private void Gender(String toString, int value) {
+            stringValue = toString;
+            intValue = value;
+        }
+
+        ViewMode(String male, int i) {
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
+        }
+    }
+
+    Calendar c;
+    List<String> Dates;
+    List<DateModel> week_dm;
     Handler mainHandler = new Handler();
 
     Context context;
     ArrayList<RecipeModel> Recipes;
+    ArrayList<DateModel> Recipes_week;
     RecyclerView.SmoothScroller smoothScroller;
+    SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat formatDay = new SimpleDateFormat("EE");
 
     Fragment _fra;
     Date today = new Date();
 
+    MainActivity ref;
     public RecyclerView.SmoothScroller getSmoothScroller() {
         return smoothScroller;
     }
 
 
-    public RecycleViewAdapter_Recipe(Fragment _fra, Context context, ArrayList<RecipeModel> Recipes, RecycleViewOnClickListener recyclerViewClickListener) {
+    public RecycleViewAdapter_Recipe(Fragment _fra, Context context, ViewMode viewMode, RecycleViewOnClickListener recyclerViewClickListener) {
 
         this.context = context;
-        this.Recipes = Recipes;
+        this.Recipes_week = MainActivity.get_RecipeDates_week();
+
+        if (viewMode == ViewMode.RECIPEBOOK) {
+            this.Recipes = MainActivity.get_RecipeModel();
+        }
+
+        if (viewMode == ViewMode.WEEKLIST){
+            Recipes = new ArrayList<RecipeModel>();
+            for (DateModel dItem : Recipes_week){
+                Long Id = dItem.getModelID();
+                HashMap recipeMap = MainActivity.getRecipeMap();
+                RecipeModel recToAdd = (RecipeModel) recipeMap.get(Id);
+
+                if (recToAdd != null){
+                    Recipes.add(recToAdd);
+                }
+            }
+            this.Recipes = Recipes;
+        }
+
+            this.Recipes = Recipes;
+
         this._fra = _fra;
 
+        ref =  (MainActivity) _fra.getActivity();
         this.itemListener = recyclerViewClickListener;
 
         smoothScroller = new LinearSmoothScroller(context) {
-
             @Override protected int getVerticalSnapPreference() {
                 return LinearSmoothScroller.SNAP_TO_START;
-
             }
         };
     }
+
 
 
     @NonNull
@@ -74,13 +123,25 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View view = inflater.inflate(R.layout.rcv_row_recipe, parent, false);
+
+
         return new RecycleViewAdapter_Recipe.MyViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecycleViewAdapter_Recipe.MyViewHolder holder, int position) {
 
-        //holder.date = Recipes.get(position).getDate();
+
+        for (DateModel ditem : Recipes_week){
+            if (ditem.getModel() == Recipes.get(position).getId()){
+                holder.rv_rcp_cv_setday.setVisibility(View.VISIBLE);
+                holder.rv_rcp_setday.setVisibility(View.VISIBLE);
+                holder.rv_rcp_setday.setText(ditem.getDay());
+            break;
+            }
+        }
+
+
 
         holder.rv_rcp_recipe.setText(Recipes.get(position).getName());
         holder.rv_rcp_autor.setText(Recipes.get(position).getCreator());
@@ -106,10 +167,10 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
-        TextView rv_rcp_recipe, rv_rcp_autor;
+        TextView rv_rcp_recipe, rv_rcp_autor, rv_rcp_setday;
         ImageView rv_rcp_imageview;
 
-        CardView rv_rcp_cardView;
+        CardView rv_rcp_cardView, rv_rcp_cv_setday;
 
 
         public MyViewHolder(@NonNull View itemView) {
@@ -118,6 +179,8 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
             rv_rcp_autor = itemView.findViewById(R.id.rv_rcp_autor);
             rv_rcp_imageview = itemView.findViewById(R.id.rv_rcp_imageview);
 
+            rv_rcp_setday = itemView.findViewById(R.id.rcp_dayset);
+            rv_rcp_cv_setday = itemView.findViewById(R.id.rcp_cv_day);
             rv_rcp_cardView = itemView.findViewById((R.id.rv_rcp_cardView));
 
             rv_rcp_cardView.setOnClickListener(new View.OnClickListener() {

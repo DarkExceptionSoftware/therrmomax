@@ -161,6 +161,15 @@ public class Confirm extends AppCompatActivity implements View.OnTouchListener, 
         this.activityReference = _activityReference;
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("action", "nothing");
+        setResult(Activity.RESULT_OK, returnIntent);
+        finish();
+        return true;
+
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override

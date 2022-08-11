@@ -22,21 +22,43 @@
             android:exported="false" />
         <activity
             android:name=".popup.Confirm"
+            android:launchMode="singleInstance"
+
             android:exported="false"
             android:label="@string/title_activity_confirm"
             android:theme="@style/MyTransp"/>
         <activity
-            android:name=".popup.ContextMenu"
+            android:name=".popup.ContextMenu_kochbuch"
+            android:launchMode="singleInstance"
+
             android:exported="false"
             android:label="@string/title_activity_confirm"
             android:theme="@style/MyTransp"/>
+        <activity
+            android:name=".popup.ContextMenu_Kalender"
+            android:launchMode="singleInstance"
+
+            android:exported="false"
+            android:label="@string/title_activity_confirm"
+            android:theme="@style/MyTransp"/>
+        <activity
+        android:name=".popup.TimePicker"
+            android:launchMode="singleInstance"
+
+            android:exported="false"
+        android:label="@string/title_activity_confirm"
+        android:theme="@style/MyTransp"/>
         <activity
             android:name=".popup.Detail"
+            android:launchMode="singleInstance"
+
             android:exported="false"
             android:label="@string/title_activity_confirm"
             android:theme="@style/MyTransp"/>
         <activity
             android:name=".web.WebViewClass"
+            android:launchMode="singleInstance"
+
             android:exported="false"
             android:label="@string/title_activity_webview"
             android:theme="@style/MyTransp"/>

@@ -1,6 +1,8 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.home;
 
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeDates;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeModel;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.db;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.setOnSelectedListener;
 
 import android.app.Activity;
@@ -10,6 +12,7 @@ import android.content.SharedPreferences;
 import android.icu.text.DateFormat;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,12 +26,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
+import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
+import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
 import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewAdapter_RecipeDate;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
+import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_Kalender;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 public class HomeFragment extends Fragment implements RecycleViewOnClickListener, action_bar_access {
 
@@ -37,6 +45,7 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
     private Activity activityReference;
     private RecyclerView recyclerView;
     private RecycleViewAdapter_RecipeDate rva;
+    private MainActivity ref;
 
     private View mView;
 
@@ -44,6 +53,7 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
                              ViewGroup container, Bundle savedInstanceState) {
 
         activityReference = getActivity();
+        ref = (MainActivity) activityReference;
 
 
         setOnSelectedListener(this);
@@ -70,9 +80,13 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
             startActivityForResult(intent, 1);
         }
 
+        UserDao userDao = db.userDao();
+
+        _RecipeDates.sort(Comparator.comparing(DateModel::getDate));
+
 
         recyclerView = binding.mRecyclerView;
-        rva = new RecycleViewAdapter_RecipeDate(getContext(), _RecipeDates,this);
+        rva = new RecycleViewAdapter_RecipeDate(getActivity(), _RecipeDates,this);
         recyclerView.setAdapter(rva);
         recyclerView.setLayoutManager(new LinearLayoutManager((getContext())));
         rva.getSmoothScroller().setTargetPosition(MainActivity.get_rv_today_position());
@@ -104,11 +118,15 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
             intent.putExtra("info", "Möchtest du den Termin\\n" + _RecipeDates.get(position).getModel() + " vom " + now.format(_RecipeDates.get(position).getDate()) + "\nwirklich Löschen?");
             startActivityForResult(intent, 1);
         }
+
     }
 
     @Override
     public void onItemlongClick(int position, String action) {
-
+        Intent intent = new Intent(getContext(), ContextMenu_Kalender.class);
+        intent.putExtra("action", "show");
+        intent.putExtra("pos", position);
+        startActivityForResult(intent, 1);
     }
 
     @Override
@@ -128,15 +146,24 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
             position = extras.getInt("pos");
 
             if (position != -1){
+
+                //USERDAO HERE
+                db.userDao().delete(_RecipeDates.get(position));
+
                 _RecipeDates.remove(position);
-                MainActivity.set_Rvtp(MainActivity.get_rv_today_position());
+
                 rva.notifyDataSetChanged();
+                MainActivity.set_Rvtp(MainActivity.get_rv_today_position());
                 Toast.makeText(getContext(), action + " " + position, Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(getContext(), "Request canceled", Toast.LENGTH_SHORT).show();
             }
         }
         if (action.equals("contract")){
+            prefs.edit().putBoolean("HAS_READ_EULA", true).apply();
+        }
+
+        if (action.equals("delete")){
             prefs.edit().putBoolean("HAS_READ_EULA", true).apply();
         }
     }
@@ -155,6 +182,9 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
     @Override
     public void clickedAddbutton() {
 
+        MainActivity.get_RecipeDates().clear();
+        db.userDao().delete();
+        rva.notifyDataSetChanged();
     }
 
     @Override

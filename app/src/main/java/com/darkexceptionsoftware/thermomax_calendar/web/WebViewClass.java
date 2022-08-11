@@ -28,6 +28,7 @@ import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class WebViewClass extends AppCompatActivity {
@@ -191,6 +192,9 @@ public class WebViewClass extends AppCompatActivity {
             url = "about:blank";
         }
         }
+
+        parseUrl(url);
+
         Intent returnIntent = new Intent();
         returnIntent.putExtra("action", "findWeb");
         returnIntent.putExtra("result", url);
@@ -201,6 +205,42 @@ public class WebViewClass extends AppCompatActivity {
         finish();
 
     }
+
+    public void parseUrl(String url)
+    {
+        Jsoup_parse Jparse;
+
+        try {
+            Jparse = new Jsoup_parse(activityReference);
+
+
+            String tvUrl = url;
+
+            String UrlRegEx = "http?s?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}/g";
+            // https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)
+            UrlRegEx = "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)";
+
+            if (!tvUrl.contains("http")) {
+                tvUrl = "http://" + tvUrl;
+            }
+
+            if (tvUrl.matches(UrlRegEx)) {
+                // Snackbar.make(view, "Trying to scrape...", Snackbar.LENGTH_LONG)
+                //        .setAction("Action", null).show();
+
+
+                //Jparse.setTextView(binding.textUrl);
+                Jparse.setTargetAdress(url);
+                Jparse.setReturnReference(activityReference);
+                Jparse.execute();
+                //Jparse.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void apply_websettings(WebView _w) {
 

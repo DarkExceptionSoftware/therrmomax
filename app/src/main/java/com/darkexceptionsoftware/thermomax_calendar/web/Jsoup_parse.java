@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
+import com.darkexceptionsoftware.thermomax_calendar.ui.kochbuch.KochbuchFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jsoup.Jsoup;
@@ -92,7 +93,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
     @Override
     protected void onPreExecute() {
-        textView.setText("Loading...");
+      //  textView.setText("Loading...");
     }
 
     @Override
@@ -125,6 +126,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
             List<String> _temp = new LinkedList<String>(Arrays.asList(split));
             List<String> __temp = new LinkedList<String>(Arrays.asList(split));
 
+            temp = temp.replace("\n", "");
             temp = temp.replace(" von " + _temp.get(_temp.size() - 1), "");
 
             result += temp + separator; //Name des Rezepts
@@ -274,7 +276,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
             intent.putExtra("info", "Ein Fehler ist aufgetreten.\nMöchtest du die\nletzte Aktion wiederholen?");
             returnReference.startActivityForResult(intent, 1);
         }
-        textView.setText(result);
+        // textView.setText(result);
         try {
             CreateRecipe(result);
         } catch (MalformedURLException e) {
@@ -382,6 +384,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
             file.delete();
 
         newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
+
     }
 }
 
