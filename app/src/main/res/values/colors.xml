@@ -18,4 +18,12 @@
     <color name="transparent">#00000000</color>
     <color name="cardview_error">#F88279</color>
 
+    <color name="ind_none">#424242</color>
+    <color name="ind_gewürz">#FF0000</color>
+    <color name="ind_fleisch">#500600</color>
+    <color name="ind_gemüse">#58FF00</color>
+    <color name="ind_mopro">#FFFFFF</color>
+    <color name="ind_beilage">#FFFF00</color>
+    <color name="ind_flüssiges">#002AFF</color>
+
 </resources>

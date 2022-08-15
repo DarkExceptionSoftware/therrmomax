@@ -15,8 +15,11 @@ import android.view.Menu;
 
 import com.darkexceptionsoftware.thermomax_calendar.data.AppDatabase;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
+import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentParser;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
+import com.darkexceptionsoftware.thermomax_calendar.data.Zutat;
 import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
 import com.google.android.material.snackbar.Snackbar;
@@ -47,20 +50,35 @@ public class MainActivity extends AppCompatActivity {
     public static action_bar_access rViewAccess;
     public static ArrayList<DateModel> _RecipeDates = new ArrayList<>();
     public static ArrayList<RecipeModel> _RecipeModel = new ArrayList<>();
-    public  static int rv_today_position = 0;
+    public static ArrayList<Indrigent> _Einkaufsliste = new ArrayList<>();
+    public static int rv_today_position = 0;
     public static AppDatabase db;
     public static int color1;
     public static int color2;
     static action_bar_access mCallback;
-    private static HashMap<Long,RecipeModel> RecipeMap=new HashMap<Long,RecipeModel>();
+    private static HashMap<Long, RecipeModel> RecipeMap = new HashMap<Long, RecipeModel>();
     public List<String> old_files;
     URL url;
     private SharedPreferences prefs;
     private fetch_recipes fr;
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
-    private Activity activityReference;
+    private static Activity activityReference;
     private Context mContext;
+    private static Menu mOptionsMenu;
+    private static IndrigentParser indrigentParser;
+
+    public  static IndrigentParser getIndrigentParser() {
+        return indrigentParser;
+    }
+
+    public static ArrayList<Indrigent> get_Einkaufsliste() {
+        return _Einkaufsliste;
+    }
+
+    public static void set_Einkaufsliste(ArrayList<Indrigent> _Einkaufsliste) {
+        MainActivity._Einkaufsliste = _Einkaufsliste;
+    }
 
     public static HashMap<Long, RecipeModel> getRecipeMap() {
         return RecipeMap;
@@ -77,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     public static ArrayList<DateModel> get_RecipeDates_week() {
         List week = load_week();
         ArrayList<DateModel> _RecipeDates_week = new ArrayList<>();
-        for (DateModel item : _RecipeDates){
+        for (DateModel item : _RecipeDates) {
             if (week.contains(item.getStringDate()))
                 _RecipeDates_week.add(item);
         }
@@ -92,15 +110,15 @@ public class MainActivity extends AppCompatActivity {
         return rv_today_position;
     }
 
-    public static void set_Rvtp(int value){
+    public static void set_Rvtp(int value) {
         rv_today_position = value;
     }
 
-    public static void setOnSelectedListener(action_bar_access listener){
+    public static void setOnSelectedListener(action_bar_access listener) {
         mCallback = listener;
     }
 
-    public static List load_week(){
+    public static List load_week() {
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat formatDay = new SimpleDateFormat("EE");
         Date date;
@@ -111,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         date = c.getTime();
         Dates.add(format1.format(date));
 
-        for (int i = 0; i < 6; i++){
+        for (int i = 0; i < 6; i++) {
             c.add(Calendar.DATE, 1);
             date = c.getTime();
             Dates.add(format1.format(date));
@@ -122,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
     public static int get_rv_today_position() {
         DateFormat now = new SimpleDateFormat("dd-MM-yyyy");
 
+        IndrigentParser indrigentparser = new IndrigentParser(activityReference);
         DateFormat year = new SimpleDateFormat("yyyy");
         DateFormat month = new SimpleDateFormat("MMMM");
 
@@ -184,8 +203,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+
 
         String AppKey = "com.darkexceptionsoftware.thermomax_calendar";
 
@@ -194,6 +212,12 @@ public class MainActivity extends AppCompatActivity {
         Boolean HAS_READ_EULA = prefs.getBoolean("HAS_READ_EULA", false);
         prefs = this.getSharedPreferences(
                 AppKey, Context.MODE_PRIVATE);
+
+
+
+
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         color1 = getResources().getColor(R.color.rv_back_1, mContext.getTheme());
         color2 = getResources().getColor(R.color.rv_back_2, mContext.getTheme());
@@ -218,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_Kochbuch, R.id.nav_slideshow)
+                R.id.nav_home, R.id.nav_Kochbuch, R.id.nav_slideshow, R.id.nav_ingredient)
                 .setOpenableLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
@@ -227,11 +251,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public static void change_appbar_icons(int drawable){
+        if (mOptionsMenu != null)
+            mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
+        mOptionsMenu = menu;
         return true;
     }
 
@@ -248,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.action_rv_add){
+        if (id == R.id.action_rv_add) {
             mCallback.clickedAddbutton();
         }
 

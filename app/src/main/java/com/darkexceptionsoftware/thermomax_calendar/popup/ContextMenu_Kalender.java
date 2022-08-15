@@ -130,10 +130,6 @@ public class ContextMenu_Kalender extends AppCompatActivity {
                 finish();
             }
         });
-
-
-
-
     }
 
 

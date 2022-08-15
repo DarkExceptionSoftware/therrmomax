@@ -1,0 +1,14 @@
+Currypulver, Fond, Gemüsebrühe, Paprikapulver, Pfeffer,
+Rosmarin,Salz, Thymian,Tomatenmark, Zucker#
+
+Milch, Butter, Käse, Frischkäse, Parmesan, Sahne
+#
+
+Hackfleisch, Hähnchenbrustfilet, Lamm, Schnitzel#
+
+Champignons, Chilischote, Frühlingszwiebel, Gurke,
+Haselnüsse, Knoblauch, Rucola, Schalotte, Tomate, Zwiebel#
+
+Buchweizen, Mehl, Nudeln#
+
+Aceto, Apfeldicksaft, Balsamico, Rotwein, Olivenöl, Speiseöl

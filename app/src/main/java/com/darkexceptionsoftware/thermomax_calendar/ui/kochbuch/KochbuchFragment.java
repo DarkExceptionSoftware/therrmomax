@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
+import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
@@ -110,6 +112,7 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
 
        // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
        // fr.execute();
+        MainActivity.change_appbar_icons(R.drawable.post_add);
 
         return root;
     }
@@ -293,6 +296,11 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         intent.putExtra("pos", position);
         intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
         startActivityForResult(intent, 1);
+    }
+
+    @Override
+    public void onViewClick(View view, String action) {
+
     }
 
 

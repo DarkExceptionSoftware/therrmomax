@@ -13,4 +13,5 @@
     <string name="title_activity_confirm">Confirm</string>
     <string name="title_activity_webview">WebView</string>
     <string name="hinweis_kochbuch">Bitte füge Rezepte hinzu.</string>
+    <string name="menu_ingredients">Einkaufsliste</string>
 </resources>

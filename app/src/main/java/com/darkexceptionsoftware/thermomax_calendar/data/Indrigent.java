@@ -14,9 +14,16 @@ public class Indrigent implements Serializable , Parcelable {
     private String name;
     private Float amount;
     private String amountof;
-    private String sortof;
+    private int sortof;
 
     public Indrigent() {
+    }
+
+    public Indrigent(Float amount,String amountof, String name,int sortof) {
+        this.amount = amount;
+        this.amountof = amountof;
+        this.name = name;
+        this.sortof = sortof;
     }
 
     public Indrigent(Parcel in) {
@@ -27,7 +34,7 @@ public class Indrigent implements Serializable , Parcelable {
             amount = in.readFloat();
         }
         amountof = in.readString();
-        sortof = in.readString();
+        sortof = in.readInt();
     }
 
     public static final Creator<Indrigent> CREATOR = new Creator<Indrigent>() {
@@ -50,11 +57,11 @@ public class Indrigent implements Serializable , Parcelable {
         this.amountof = amountof;
     }
 
-    public String getSortof() {
+    public int getSortof() {
         return sortof;
     }
 
-    public void setSortof(String sortof) {
+    public void setSortof(int sortof) {
         this.sortof = sortof;
     }
 
@@ -114,6 +121,6 @@ public class Indrigent implements Serializable , Parcelable {
             parcel.writeFloat(amount);
         }
         parcel.writeString(amountof);
-        parcel.writeString(sortof);
+        parcel.writeInt(sortof);
     }
 }

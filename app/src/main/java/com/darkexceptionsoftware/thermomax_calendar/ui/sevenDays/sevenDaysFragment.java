@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
+import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentKochbuchBinding;
@@ -54,6 +56,7 @@ public class sevenDaysFragment extends Fragment implements RecycleViewOnClickLis
 
         // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
         // fr.execute();
+        MainActivity.change_appbar_icons(R.drawable.post_add);
 
         return root;
     }
@@ -73,6 +76,11 @@ public class sevenDaysFragment extends Fragment implements RecycleViewOnClickLis
     @Override
     public void onItemlongClick(int position, String action) {
         Toast.makeText(getContext(),"2", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void onViewClick(View view, String action) {
 
     }
 

@@ -9,7 +9,7 @@
     <item android:title="Item" />
     <item
         android:id="@+id/action_rv_add"
-        android:icon="@drawable/ic_baseline_post_add_24"
+        android:icon="@drawable/post_add"
         android:title="Chefkoch"
         app:showAsAction="always|withText" />
     <item

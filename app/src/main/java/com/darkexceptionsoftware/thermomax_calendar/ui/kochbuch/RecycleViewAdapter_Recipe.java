@@ -132,6 +132,9 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
     @Override
     public void onBindViewHolder(@NonNull RecycleViewAdapter_Recipe.MyViewHolder holder, int position) {
 
+        holder.rv_rcp_cv_setday.setVisibility(View.GONE);
+        holder.rv_rcp_setday.setVisibility(View.GONE);
+        holder.rv_rcp_setday.setText("");
 
         for (DateModel ditem : Recipes_week){
             if (ditem.getModel() == Recipes.get(position).getId()){

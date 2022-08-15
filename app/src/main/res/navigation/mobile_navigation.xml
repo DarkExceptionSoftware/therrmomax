@@ -22,4 +22,9 @@
         android:name="com.darkexceptionsoftware.thermomax_calendar.ui.sevenDays.sevenDaysFragment"
         android:label="@string/menu_sevenDays"
         tools:layout="@layout/fragment_webview" />
+    <fragment
+        android:id="@+id/nav_ingredient"
+        android:name="com.darkexceptionsoftware.thermomax_calendar.ui.ingredient.IngredientFragment"
+        android:label="@string/menu_ingredients"
+        tools:layout="@layout/fragment_ingredient" />
 </navigation>

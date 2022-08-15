@@ -119,6 +119,10 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
             String separator = "|", tabseparator = ";", tablineseparator = "#";
             temp = doc.title().substring(17);
+
+            if (!temp.contains(" von "))
+                temp += " von Unbekannt";
+
             temp = replaceLast(temp, " von ", separator);
             // update("TEST:\n"+ temp);
 
@@ -319,6 +323,10 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
         List<Indrigent> indrigentslist = newRecipe.getINDRIGENTS();
 
         String table = _field[3].replace("\n", "");
+        if (table.startsWith("http"))
+             table = _field[2].replace("\n", "");
+
+
         table = table.replace(";;", ";");
         String[] _table = table.split("#");
         for (int i = 0; i < _table.length; i++) {
@@ -377,7 +385,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
 
         // Set image url
-        newRecipe.setImagePath(_field[4].trim());
+        newRecipe.setImagePath(_field[_field.length-1].trim());
         String RecDir = context.getApplicationInfo().dataDir + "/files/";
         File file = new File(RecDir + +newRecipe.getId() + ".rcp");
         if (file.exists())

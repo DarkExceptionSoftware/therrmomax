@@ -16,6 +16,7 @@ import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
+import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
 import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
@@ -92,6 +94,7 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
         rva.getSmoothScroller().setTargetPosition(MainActivity.get_rv_today_position());
         recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
 
+        MainActivity.change_appbar_icons(R.drawable.post_add);
 
 
         return root;
@@ -133,6 +136,11 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
         intent.putExtra("action", "show");
         intent.putExtra("pos", position);
         startActivityForResult(intent, 1);
+    }
+
+    @Override
+    public void onViewClick(View view, String action) {
+
     }
 
     @Override
