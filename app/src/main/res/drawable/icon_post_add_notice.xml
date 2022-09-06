@@ -3,7 +3,7 @@
     <item
             android:drawable="@drawable/icon_circle"
             android:gravity="center"
-        android:top="24dp">
+       >
     </item>
 
     <item

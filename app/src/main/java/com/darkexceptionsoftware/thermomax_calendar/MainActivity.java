@@ -33,6 +33,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -75,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private static UserDao_indrigent userDao_indrigent;
     private static Toolbar toolbar;
     public List<String> old_files;
+    public static Activity ref;
+
     public ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -110,7 +113,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static if_IOnBackPressed if_bp;
 
-    @Override public void onBackPressed() {
+    @Override
+    public void onBackPressed() {
         // Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_container);
         if (!if_bp.BackPressed()) {
             super.onBackPressed();
@@ -234,15 +238,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void change_appbar_icons(int drawable) {
-        if (mOptionsMenu != null)
-            mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
+        // if (mOptionsMenu != null)
+        // mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
 
-
+        if (toolbar != null) {
+            Drawable d = ContextCompat.getDrawable(ref.getApplicationContext(), drawable);
+            toolbar.setOverflowIcon(d);
+        }
     }
 
     public static void change_navbar_icons(int drawable) {
-        if (toolbar != null)
+        if (toolbar != null) {
             toolbar.setNavigationIcon(drawable);
+
+        }
     }
 
     public static void change_drawer_color(boolean mark) {
@@ -267,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static void button_visibility(int id, boolean state) {
         if (mOptionsMenu != null)
-            mOptionsMenu.findItem(id).setVisible(false);
+            mOptionsMenu.findItem(id).setVisible(state);
         //mOptionsMenu.findItem(R.id.action_rv_home).setVisible(false);
 
     }
@@ -277,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         activityReference = this;
         mContext = getApplicationContext();
+        ref = this;
 
         db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "recipes").allowMainThreadQueries().build();
@@ -416,7 +426,8 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
-    private void setup_sample_RecipeDates() throws MalformedURLException, PackageManager.NameNotFoundException {
+    private void setup_sample_RecipeDates() throws
+            MalformedURLException, PackageManager.NameNotFoundException {
         for (int i = 0; i < 50; i++) {
 
             // _RecipeDates.add(new DateModel("RCP" + i + "X", RandomDateTime.randomtime(), "Fritz", 0, 0));

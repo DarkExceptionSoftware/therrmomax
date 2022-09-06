@@ -131,7 +131,7 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
 
 
         if (c > 0) {
-            MainActivity.change_appbar_icons(R.drawable.post_add);
+            MainActivity.change_appbar_icons(R.drawable.icon_post_add);
             binding.tipCard.setVisibility(View.GONE);
         } else {
             MainActivity.change_appbar_icons(R.drawable.img_indrigent_bottle);
@@ -148,7 +148,7 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
                     stop = true;
 
                 if (blink == 0) {
-                    MainActivity.change_appbar_icons(R.drawable.post_add);
+                    MainActivity.change_appbar_icons(R.drawable.icon_post_add);
 
                     blink = 1;
                     delay = 1000;
@@ -162,7 +162,7 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
                 if (!stop) {
                     handler.postDelayed(this, delay);
                 } else {
-                    MainActivity.change_appbar_icons(R.drawable.post_add);
+                    MainActivity.change_appbar_icons(R.drawable.icon_post_add);
 
                 }
             }
@@ -170,6 +170,20 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
 
         stop = false;
         handler.postDelayed(runnable, 900);
+
+
+
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                MainActivity.button_visibility(R.id.action_rv_add,false);
+                MainActivity.button_visibility(R.id.action_rv_home,false);
+
+            }
+        };
+
+        Handler h = new Handler();
+        h.postDelayed(r, 1000);
 
         return root;
     }
@@ -216,18 +230,6 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         startActivityForResult(intent, 1);
     }
 
-    @Override
-    public void clicked_m3_Button() {
-
-    }
-
-    @Override
-    public void clickedFab1() {
-    }
-
-    @Override
-    public void clickedFab2() {
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -343,7 +345,9 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
                 _RecipeModel.remove(position);
 
                 rva.notifyItemRemoved(position);
-                MainActivity.change_appbar_icons(R.drawable.post_add);
+                MainActivity.change_appbar_icons(R.drawable.icon_post_add);
+
+
 
                 CardView tipCard = (CardView) root.findViewById(R.id.tip_card);
 
@@ -424,8 +428,6 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
             intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
             startActivity(intent);
         }
-
-
     }
 
     @Override

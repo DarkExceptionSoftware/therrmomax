@@ -10,15 +10,17 @@
         android:id="@+id/menu_recipe_1"
         android:icon="@drawable/ic_baseline_thumb_up_24"
         android:title="Eigenes Rezept"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_rv_add"
         android:icon="@drawable/post_add"
         android:title="Chefkoch"
-        app:showAsAction="always|withText" />
+        app:showAsAction="always|withText"
+        />
     <item
         android:id="@+id/menu_recipe_2"
-        android:title="Chefkoch.de" />
+        android:title="Chefkoch.de"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_rv_home"

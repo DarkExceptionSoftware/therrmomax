@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-            android:drawable="@drawable/icon_circle"
+            android:drawable="@drawable/icon_circle_notice"
             android:gravity="center"
-     >
+       >
     </item>
 
     <item
-        android:drawable="@drawable/icon_menu"
+        android:drawable="@drawable/post_add"
         android:gravity="center">
         android:viewportHeight="24">
 
