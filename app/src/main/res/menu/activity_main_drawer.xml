@@ -5,17 +5,17 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/nav_seven"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="@string/menu_sevenDays" />
+        <item
+            android:id="@+id/nav_calendar"
             android:icon="@drawable/ic_baseline_outdoor_grill_24"
             android:title="@string/menu_home" />
         <item
             android:id="@+id/nav_Kochbuch"
             android:icon="@drawable/ic_baseline_menu_book_24"
             android:title="@string/menu_Kochbuch" />
-        <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_sevenDays" />
         <item
             android:id="@+id/nav_ingredient"
             android:icon="@drawable/ic_menu_slideshow"

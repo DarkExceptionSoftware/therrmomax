@@ -1,11 +1,18 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.kochbuch;
 
+import static androidx.activity.result.ActivityResultCallerKt.registerForActivityResult;
+
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
 import android.os.Handler;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,21 +21,25 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +47,9 @@ import java.util.List;
 
 public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewAdapter_Recipe.MyViewHolder> {
 
-    private static RecycleViewOnClickListener itemListener;
+    private static if_RecycleViewOnClickListener itemListener;
+
+    private static boolean local = false;
 
     public static enum ViewMode {
         RECIPEBOOK("Recipebook", 0),
@@ -79,7 +92,7 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
     }
 
 
-    public RecycleViewAdapter_Recipe(Fragment _fra, Context context, ViewMode viewMode, RecycleViewOnClickListener recyclerViewClickListener) {
+    public RecycleViewAdapter_Recipe(Fragment _fra, Context context, ViewMode viewMode, if_RecycleViewOnClickListener recyclerViewClickListener) {
 
         this.context = context;
         this.Recipes_week = MainActivity.get_RecipeDates_week();
@@ -155,21 +168,158 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
 
         String url = Recipes.get(position).getImagePath();
 
+        boolean success = true;
+
+        RecipeModel info = Recipes.get(position);
+        String get_image_from;
+        local = false;
+
+        if (info.getImagePath_internal().equals("")) {
+            get_image_from = info.getImagePath();
+        } else {
+            get_image_from = info.getImagePath_internal();
+            local = true;
+        }
+        Log.d("Gilde", "DVIEW - INT - " + info.getImagePath_internal());
+        Log.d("Gilde", "DVIEW - SRC - " + info.getImagePath());
 
         Glide
                 .with(_fra)
-                .load(url)
+                .asBitmap() // There is no such method
+                .load(get_image_from)
+                .placeholder(R.drawable.img_norecipepic)
                 .centerCrop()
-                .placeholder(R.drawable.sample)
-                .into(holder.rv_rcp_imageview);
+                .into(new CustomTarget<Bitmap>(600,600) {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
 
+                        if (!local) {
+                            Boolean permission = false;
+                            if (ContextCompat.checkSelfPermission(
+                                    context, Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                                    PackageManager.PERMISSION_GRANTED) {
+                                // You can use the API that requires the permission.
+                                permission = true;
+                            } else {
+                                // You can directly ask for the permission.
+                                // The registered ActivityResultCallback gets the result of this request.
+                                //MainActivity.requestPermissionLauncher.launch(
+                                //       Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                            }
+
+                            String int_path = "";
+
+                            if (permission)
+                                int_path = saveImage(info.getId() + "", bitmap);   // save your bitmap
+
+                            info.setImagePath_internal(int_path);
+                            Log.d("Gilde", "DVIEW - RES - " + int_path);
+                        }
+                        holder.rv_rcp_imageview.setImageBitmap(bitmap);
+                        holder.rv_rcp_imageview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+                });
+
+
+        /*
+
+
+        Glide
+                .with(_fra)
+                .asBitmap().load(get_image_from)
+                .centerCrop()
+                .apply(new RequestOptions()
+                        .diskCacheStrategy(DiskCacheStrategy.ALL))
+                .listener(new RequestListener<Bitmap>() {
+
+
+                              @Override
+                              public boolean onLoadFailed(@Nullable GlideException e, Object
+                                      o, Target<Bitmap> target, boolean b) {
+
+                                  return false;
+                              }
+
+                              @Override
+                              public boolean onResourceReady(Bitmap bitmap, Object o, Target<Bitmap>
+                                      target, DataSource dataSource, boolean b) {
+
+
+
+                                  return false;
+                              }
+                          }
+                ).
+                submit();
+                */
 
 
     }
 
+
+    private String saveImage(String name, Bitmap image) {
+        String savedImagePath = null;
+
+        String imageFileName = name + ".jpg";
+
+        String ImageDir = context.getApplicationInfo().dataDir + "/files";
+
+        File storageDir = new File(ImageDir, "pictures");
+        boolean success = true;
+        if (!storageDir.exists()) {
+            success = storageDir.mkdirs();
+        }
+        if (success) {
+
+            File imageFile = new File(storageDir, imageFileName);
+            savedImagePath = imageFile.getAbsolutePath();
+            try {
+                OutputStream fOut = new FileOutputStream(imageFile);
+                image.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+                fOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Add the image to the system gallery
+            // galleryAddPic(savedImagePath);
+            //Toast.makeText(getApplicationContext(), "IMAGE SAVED", Toast.LENGTH_LONG).show();
+        }
+        return savedImagePath;
+    }
+
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
     @Override
     public int getItemCount() {
-        return Recipes.size();
+
+        int c = Recipes.size();
+        return c;
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder{
@@ -207,59 +357,6 @@ public class RecycleViewAdapter_Recipe extends RecyclerView.Adapter<RecycleViewA
         }
 
 
-    }
-    class FetchImage extends Thread{
-
-        String url;
-        Bitmap bitmap;
-        ImageView position;
-
-        FetchImage(String url, ImageView position){
-
-            this.position = position;
-            this.url = url;
-
-        }
-
-        @Override
-        public void run() {
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-
-                   // progressDialog = new ProgressDialog(MainActivity.this);
-                   //progressDialog.setMessage("Getting your pic....");
-                   // progressDialog.setCancelable(false);
-                   // progressDialog.show();
-                }
-            });
-
-            InputStream inputStream = null;
-            try {
-                inputStream = new URL(url).openStream();
-                bitmap = BitmapFactory.decodeStream(inputStream);
-                ImageView p = position;
-                p.setImageBitmap(bitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-
-                   // if (progressDialog.isShowing())
-                   //     progressDialog.dismiss();
-                   // binding.imageView.setImageBitmap(bitmap);
-
-                }
-            });
-
-
-
-
-        }
     }
 }
 

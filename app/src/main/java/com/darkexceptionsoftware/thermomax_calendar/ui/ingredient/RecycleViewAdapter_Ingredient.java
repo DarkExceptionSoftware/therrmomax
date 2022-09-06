@@ -14,19 +14,17 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
-import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentParser;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
-import com.darkexceptionsoftware.thermomax_calendar.data.Zutat;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class RecycleViewAdapter_Ingredient extends RecyclerView.Adapter<RecycleViewAdapter_Ingredient.MyViewHolder> {
 
-    private static RecycleViewOnClickListener itemListener;
+    private static if_RecycleViewOnClickListener itemListener;
 
     int lastposition = 0;
 
@@ -37,7 +35,7 @@ public class RecycleViewAdapter_Ingredient extends RecyclerView.Adapter<RecycleV
 
     Activity activityReference;
 
-    public RecycleViewAdapter_Ingredient(Activity activityReference, ArrayList<Indrigent> Einkaufsliste, RecycleViewOnClickListener recyclerViewClickListener) {
+    public RecycleViewAdapter_Ingredient(Activity activityReference, ArrayList<Indrigent> Einkaufsliste, if_RecycleViewOnClickListener recyclerViewClickListener) {
 
         this.activityReference = activityReference;
         this.context = activityReference.getApplicationContext();
@@ -91,12 +89,29 @@ public class RecycleViewAdapter_Ingredient extends RecyclerView.Adapter<RecycleV
 
         if (z.getSortof() == IndrigentParser.GEWÜRZ) {
             holder.rv_indicator.setBackgroundResource(R.color.ind_gewürz);
-            holder.rv_amount.setText("");
-            holder.rv_amountof.setText("");
+            holder.rv_amount.setVisibility(View.GONE);
+            holder.rv_amountof.setVisibility(View.GONE);
         }else{
-            holder.rv_amount.setText(z.getAmount().toString());
-            holder.rv_amountof.setText(z.getAmountof());
+
         }
+
+        String Amount = z.getAmount().toString();
+        String AmountOf = z.getAmountof();
+        if (Amount.substring(Amount.length() -2).equals(".0"))
+            Amount = Amount.substring(0, Amount.length() -2);
+
+        holder.rv_amount.setVisibility(View.VISIBLE);
+        holder.rv_amountof.setVisibility(View.VISIBLE);
+        holder.rv_amount.setText(Amount);
+        holder.rv_amountof.setText(AmountOf);
+
+        AmountOf = AmountOf.toLowerCase(Locale.ROOT);
+
+        if (Amount.equals("0") || AmountOf.matches("el|tl|etwas")  ){
+            holder.rv_amount.setVisibility(View.GONE);
+            holder.rv_amountof.setVisibility(View.GONE);
+        }
+
         lastposition = position;
     }
 
@@ -119,12 +134,24 @@ public class RecycleViewAdapter_Ingredient extends RecyclerView.Adapter<RecycleV
             rv_amountof = itemView.findViewById(R.id.rv_amountof);
             rv_ingredient = itemView.findViewById(R.id.rv_ingredient);
 
-            rcv_ind_btn1 = itemView.findViewById(R.id.rcv_ind_btn1);
-            rcv_ind_btn2 = itemView.findViewById(R.id.rcv_ind_btn2);
-            rcv_ind_btn3 = itemView.findViewById(R.id.rcv_ind_btn3);
-            rv_indicator = itemView.findViewById(R.id.rv_indicator);
-            itemView.setOnClickListener(this);
 
+            rv_indicator = itemView.findViewById(R.id.rv_indicator);
+
+
+            rv_cardview.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    itemListener.onItemClick(getAdapterPosition(),"show");
+                }
+            });
+
+            rv_cardview.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    itemListener.onItemlongClick(getAdapterPosition(),"show");
+                    return false;
+                }
+            });
         }
 
 

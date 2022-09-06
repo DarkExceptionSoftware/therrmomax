@@ -24,7 +24,7 @@
             android:scaleType="fitXY"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/cardView"
-            app:srcCompat="@drawable/chef_left" />
+            app:srcCompat="@drawable/img_theme_chef_left" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView"
@@ -50,7 +50,7 @@
                     android:scaleType="fitXY"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/chef_rechts" />
+                    app:srcCompat="@drawable/img_theme_chef_rechts" />
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/tag1"

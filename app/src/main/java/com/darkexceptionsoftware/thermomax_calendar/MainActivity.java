@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.icu.text.DateFormat;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.Calendar;
@@ -14,17 +15,25 @@ import android.view.View;
 import android.view.Menu;
 
 import com.darkexceptionsoftware.thermomax_calendar.data.AppDatabase;
+import com.darkexceptionsoftware.thermomax_calendar.data.AppDatabase_indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentParser;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
-import com.darkexceptionsoftware.thermomax_calendar.data.Zutat;
-import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
+import com.darkexceptionsoftware.thermomax_calendar.data.UserDao_indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -47,28 +56,72 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
-    public static action_bar_access rViewAccess;
+    public static if_action_bar_access rViewAccess;
     public static ArrayList<DateModel> _RecipeDates = new ArrayList<>();
     public static ArrayList<RecipeModel> _RecipeModel = new ArrayList<>();
     public static ArrayList<Indrigent> _Einkaufsliste = new ArrayList<>();
+    public static ArrayList<IndrigentModel> _Indrigents = new ArrayList<>();
     public static int rv_today_position = 0;
     public static AppDatabase db;
+    public static AppDatabase_indrigent db_ig;
     public static int color1;
     public static int color2;
-    static action_bar_access mCallback;
+    static if_action_bar_access mCallback;
+    static NavigationView navigationView;
     private static HashMap<Long, RecipeModel> RecipeMap = new HashMap<Long, RecipeModel>();
+    private static Activity activityReference;
+    private static Menu mOptionsMenu;
+    private static IndrigentParser indrigentParser;
+    private static UserDao_indrigent userDao_indrigent;
+    private static Toolbar toolbar;
     public List<String> old_files;
+    public ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            });
     URL url;
     private SharedPreferences prefs;
     private fetch_recipes fr;
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
-    private static Activity activityReference;
     private Context mContext;
-    private static Menu mOptionsMenu;
-    private static IndrigentParser indrigentParser;
+    private boolean actionbuttonstate = true;
 
-    public  static IndrigentParser getIndrigentParser() {
+    public static ArrayList<IndrigentModel> get_Indrigents() {
+        return _Indrigents;
+    }
+
+    public static void set_Indrigents(ArrayList<IndrigentModel> _Indrigents) {
+        MainActivity._Indrigents = _Indrigents;
+    }
+
+    public static UserDao_indrigent getUserDao_indrigent() {
+        return userDao_indrigent;
+    }
+
+    public static if_IOnBackPressed if_bp;
+
+    @Override public void onBackPressed() {
+        // Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.main_container);
+        if (!if_bp.BackPressed()) {
+            super.onBackPressed();
+        }
+    }
+
+    public static void setUserDao_indrigent(UserDao_indrigent userDao_indrigent) {
+        MainActivity.userDao_indrigent = userDao_indrigent;
+    }
+
+    public static IndrigentParser getIndrigentParser() {
         return indrigentParser;
     }
 
@@ -114,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         rv_today_position = value;
     }
 
-    public static void setOnSelectedListener(action_bar_access listener) {
+    public static void setOnSelectedListener(if_action_bar_access listener) {
         mCallback = listener;
     }
 
@@ -180,6 +233,45 @@ public class MainActivity extends AppCompatActivity {
         return position;
     }
 
+    public static void change_appbar_icons(int drawable) {
+        if (mOptionsMenu != null)
+            mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
+
+
+    }
+
+    public static void change_navbar_icons(int drawable) {
+        if (toolbar != null)
+            toolbar.setNavigationIcon(drawable);
+    }
+
+    public static void change_drawer_color(boolean mark) {
+
+        Menu menuNav;
+
+        if (navigationView != null) {
+            navigationView.setItemIconTintList(null);
+
+            menuNav = navigationView.getMenu();
+            MenuItem item = menuNav.getItem(2);
+            if (mark) {
+                item.setIcon(R.drawable.icon_kochbuch_notice);
+            } else {
+                item.setIcon(R.drawable.ic_baseline_menu_book_24);
+            }
+
+        }
+    }
+
+    ;
+
+    public static void button_visibility(int id, boolean state) {
+        if (mOptionsMenu != null)
+            mOptionsMenu.findItem(id).setVisible(false);
+        //mOptionsMenu.findItem(R.id.action_rv_home).setVisible(false);
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -189,7 +281,13 @@ public class MainActivity extends AppCompatActivity {
         db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "recipes").allowMainThreadQueries().build();
 
+        db_ig = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase_indrigent.class, "indrigents").allowMainThreadQueries().build();
+
         UserDao userDao = db.userDao();
+
+        userDao_indrigent = (UserDao_indrigent) db_ig.userDao();
+
         fr = new fetch_recipes(activityReference, null, _RecipeModel);
         fr.execute();
 
@@ -204,7 +302,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
         String AppKey = "com.darkexceptionsoftware.thermomax_calendar";
 
         prefs = mContext.getSharedPreferences(
@@ -214,14 +311,19 @@ public class MainActivity extends AppCompatActivity {
                 AppKey, Context.MODE_PRIVATE);
 
 
-
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+
+        toolbar = binding.appBarMain.toolbar;
         color1 = getResources().getColor(R.color.rv_back_1, mContext.getTheme());
         color2 = getResources().getColor(R.color.rv_back_2, mContext.getTheme());
-        setSupportActionBar(binding.appBarMain.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        Drawable d = toolbar.getNavigationIcon();
+
+
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -238,22 +340,26 @@ public class MainActivity extends AppCompatActivity {
         });
 
         DrawerLayout drawer = binding.drawerLayout;
-        NavigationView navigationView = binding.navView;
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.auf, R.string.zu);
+        navigationView = binding.navView;
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_Kochbuch, R.id.nav_slideshow, R.id.nav_ingredient)
+                R.id.nav_calendar, R.id.nav_Kochbuch, R.id.nav_seven, R.id.nav_ingredient)
                 .setOpenableLayout(drawer)
                 .build();
+
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.img_indrigent_dairy);
+
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-    }
-
-    public static void change_appbar_icons(int drawable){
-        if (mOptionsMenu != null)
-            mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
     }
 
     @Override
@@ -263,6 +369,22 @@ public class MainActivity extends AppCompatActivity {
 
         mOptionsMenu = menu;
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.action_rv_add).setVisible(actionbuttonstate);
+        menu.findItem(R.id.action_rv_home).setVisible(actionbuttonstate);
+        return true;
+    }
+
+    public boolean isActionbuttonstate() {
+        return actionbuttonstate;
+    }
+
+    public void setActionbuttonstate(boolean actionbuttonstate) {
+        this.actionbuttonstate = actionbuttonstate;
     }
 
     @Override
@@ -277,9 +399,11 @@ public class MainActivity extends AppCompatActivity {
             mCallback.clickedHomebutton();
             return true;
         }
-
-        if (id == R.id.action_rv_add) {
-            mCallback.clickedAddbutton();
+        if (id == R.id.menu_recipe_1) {
+            mCallback.clicked_m1_Button();
+        }
+        if (id == R.id.menu_recipe_2) {
+            mCallback.clicked_m2_Button();
         }
 
         return super.onOptionsItemSelected(item);

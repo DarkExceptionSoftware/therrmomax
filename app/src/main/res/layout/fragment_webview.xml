@@ -4,14 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.sevenDays.SlideshowFragment">
+    tools:context=".ui.sevenDays.sevenDaysFragment">
 
     <com.darkexceptionsoftware.thermomax_calendar.web.CustomWebView
         android:id="@+id/webviewwidget"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:layout_height="match_parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/text_slideshow"

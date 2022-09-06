@@ -2,10 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.darkexceptionsoftware.thermomax_calendar">
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -18,50 +30,62 @@
         tools:targetApi="32">
 
         <activity
-            android:name=".DisplayMessageActivity"
-            android:exported="false" />
+            android:name=".popup.NewRecipe"
+            android:exported="false"
+
+            android:label="New Recipe"
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".popup.Confirm"
-            android:launchMode="singleInstance"
-
             android:exported="false"
+
             android:label="@string/title_activity_confirm"
-            android:theme="@style/MyTransp"/>
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
         <activity
             android:name=".popup.ContextMenu_kochbuch"
-            android:launchMode="singleInstance"
-
             android:exported="false"
+
             android:label="@string/title_activity_confirm"
-            android:theme="@style/MyTransp"/>
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
         <activity
             android:name=".popup.ContextMenu_Kalender"
-            android:launchMode="singleInstance"
-
             android:exported="false"
+
             android:label="@string/title_activity_confirm"
-            android:theme="@style/MyTransp"/>
-        <activity
-        android:name=".popup.TimePicker"
             android:launchMode="singleInstance"
-
+            android:theme="@style/MyTransp" />
+        <activity
+            android:name=".popup.ContextMenu_einkaufsliste"
             android:exported="false"
-        android:label="@string/title_activity_confirm"
-        android:theme="@style/MyTransp"/>
+
+            android:label="@string/title_activity_confirm"
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
+        <activity
+            android:name=".popup.TimePicker"
+            android:exported="false"
+
+            android:label="@string/title_activity_confirm"
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
         <activity
             android:name=".popup.Detail"
-            android:launchMode="singleInstance"
-
             android:exported="false"
+
             android:label="@string/title_activity_confirm"
-            android:theme="@style/MyTransp"/>
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
         <activity
             android:name=".web.WebViewClass"
-            android:launchMode="singleInstance"
-
             android:exported="false"
+
             android:label="@string/title_activity_webview"
-            android:theme="@style/MyTransp"/>
+            android:launchMode="singleInstance"
+            android:theme="@style/MyTransp" />
 
         <activity
             android:name=".MainActivity"

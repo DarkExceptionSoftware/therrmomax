@@ -16,26 +16,27 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
-import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentKochbuchBinding;
 import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_kochbuch;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Detail;
+import com.darkexceptionsoftware.thermomax_calendar.popup.NewRecipe;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
 import com.darkexceptionsoftware.thermomax_calendar.web.WebViewClass;
 
@@ -47,15 +48,26 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 
-public class KochbuchFragment extends Fragment implements RecycleViewOnClickListener, action_bar_access {
+public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickListener, if_action_bar_access, SwipeRefreshLayout.OnRefreshListener {
 
+    View root;
+    RecipeModel recipe;
+    String RecDir;
     private FragmentKochbuchBinding binding;
     private SharedPreferences prefs;
     private Activity activityReference;
     private RecyclerView recyclerView;
     private RecycleViewAdapter_Recipe rva;
-
     private fetch_recipes fr;
+    private SwipeRefreshLayout swipeLayout;
+    private MainActivity ref;
+    private boolean stop = false;
+    private int blink = 0;
+    private Handler handler;
+    private Runnable runnable;
+
+    public KochbuchFragment() {
+    }
 
     public RecycleViewAdapter_Recipe getRva() {
         return rva;
@@ -73,33 +85,28 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         _RecipeModel = recipes;
     }
 
-    private MainActivity ref;
-    RecipeModel recipe;
-    String RecDir;
-
-    public KochbuchFragment() {
-    }
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         KochbuchViewModel galleryViewModel =
                 new ViewModelProvider(this).get(KochbuchViewModel.class);
         activityReference = getActivity();
 
-         ref = (MainActivity) activityReference;
+        ref = (MainActivity) activityReference;
 
         binding = FragmentKochbuchBinding.inflate(inflater, container, false);
         RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
 
-        View root = binding.getRoot();
+        root = binding.getRoot();
 
+        swipeLayout = binding.swipeContainer;
+        swipeLayout.setOnRefreshListener(this);
+        swipeLayout.setRefreshing(false);
 
         _RecipeModel = ref.get_RecipeModel();
 
         setOnSelectedListener(this);
 
 
-        final TextView textView = binding.textUrl;
         // galleryViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         recyclerView = binding.rcvCookbook;
@@ -110,18 +117,68 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
 
 
-       // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
-       // fr.execute();
-        MainActivity.change_appbar_icons(R.drawable.post_add);
+        // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
+        // fr.execute();
+
+        ref.setActionbuttonstate(true);
+        ref.invalidateOptionsMenu();
+
+
+        binding.textView3.setText(R.string.tip_cb);
+        binding.tipIcon.setVisibility(View.VISIBLE);
+        binding.tipIcon2.setVisibility(View.GONE);
+        int c = rva.getItemCount();
+
+
+        if (c > 0) {
+            MainActivity.change_appbar_icons(R.drawable.post_add);
+            binding.tipCard.setVisibility(View.GONE);
+        } else {
+            MainActivity.change_appbar_icons(R.drawable.img_indrigent_bottle);
+            binding.tipCard.setVisibility(View.VISIBLE);
+        }
+
+
+        handler = new Handler();
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                int delay = 1000;
+                if (_RecipeModel.size() > 0)
+                    stop = true;
+
+                if (blink == 0) {
+                    MainActivity.change_appbar_icons(R.drawable.post_add);
+
+                    blink = 1;
+                    delay = 1000;
+
+                } else {
+                    MainActivity.change_appbar_icons(R.drawable.icon_post_add_notice);
+                    blink = 0;
+                    delay = 1000;
+                }
+
+                if (!stop) {
+                    handler.postDelayed(this, delay);
+                } else {
+                    MainActivity.change_appbar_icons(R.drawable.post_add);
+
+                }
+            }
+        };
+
+        stop = false;
+        handler.postDelayed(runnable, 900);
 
         return root;
     }
 
-
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        stop = true;
+
         binding = null;
     }
 
@@ -143,13 +200,33 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
     }
 
     @Override
-    public void clickedFab1() {
+    public void clicked_m1_Button() {
+        Intent intent = new Intent(activityReference, NewRecipe.class);
+        intent.putExtra("action", "newRecipe");
+        intent.putExtra("url", "https:////www.chefkoch.de////");
+        startActivityForResult(intent, 1);
+    }
+
+    @Override
+    public void clicked_m2_Button() {
+        Intent intent = new Intent(activityReference, WebViewClass.class);
+        // TextView editText = (TextView) findViewById(R.id.confirm_label);
+        intent.putExtra("action", "findWeb");
+        intent.putExtra("url", "https:////www.chefkoch.de////");
+        startActivityForResult(intent, 1);
+    }
+
+    @Override
+    public void clicked_m3_Button() {
 
     }
 
     @Override
-    public void clickedFab2() {
+    public void clickedFab1() {
+    }
 
+    @Override
+    public void clickedFab2() {
     }
 
     @Override
@@ -169,6 +246,24 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 }
             }
 
+            if (action.equals("edit")) {
+                position = extras.getInt("pos");
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        _RecipeModel.clear();
+                        fr = new fetch_recipes(activityReference, rva, _RecipeModel);
+                        fr.execute();
+                        CardView tipCard = (CardView) root.findViewById(R.id.tip_card);
+                        int c = rva.getItemCount();
+                        tipCard.setVisibility(View.GONE);
+                        stop = true;
+                    }
+                };
+
+                Handler h = new Handler();
+                h.postDelayed(r, 1000);
+            }
 
             if (action.equals("findWeb")) {
 
@@ -177,11 +272,13 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 Runnable r = new Runnable() {
                     @Override
                     public void run() {
+                        _RecipeModel.clear();
                         fr = new fetch_recipes(activityReference, rva, _RecipeModel);
-
                         fr.execute();
-                        // rva.notifyItemInserted(0);
-                        // recyclerView.invalidate();
+                        CardView tipCard = (CardView) root.findViewById(R.id.tip_card);
+                        int c = rva.getItemCount();
+                        tipCard.setVisibility(View.GONE);
+                        stop = true;
                     }
                 };
 
@@ -195,16 +292,16 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 long date = extras.getLong("date");
                 UserDao userDao = ref.db.userDao();
 
-                DateModel new_date = new DateModel(_RecipeModel.get(position).getId(), date, "self",0,0);
+                DateModel new_date = new DateModel(_RecipeModel.get(position).getId(), date, "self", 0, 0);
                 try {
                     userDao.insertAll(new_date);
 
-                }catch (Exception e){
+                } catch (Exception e) {
                     Writer writer = new StringWriter();
                     e.printStackTrace(new PrintWriter(writer));
                     String s = writer.toString();
 
-                    Log.d("DAO",s);
+                    Log.d("DAO", s);
                 }
 
                 _RecipeDates.add(new_date);
@@ -246,8 +343,19 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 _RecipeModel.remove(position);
 
                 rva.notifyItemRemoved(position);
+                MainActivity.change_appbar_icons(R.drawable.post_add);
+
+                CardView tipCard = (CardView) root.findViewById(R.id.tip_card);
+
+                if (_RecipeModel.size() < 1) {
+                    tipCard.setVisibility(View.VISIBLE);
+                    stop = false;
+                    handler.postDelayed(runnable, 500);
+
+
+                }
             }
-        } catch(Exception e){
+        } catch (Exception e) {
 
         }
     }
@@ -275,8 +383,7 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
                 //        .setAction("Action", null).show();
 
 
-                Jparse.setTextView(binding.textUrl);
-                Jparse.setTargetAdress(url);
+//                Jparse.setTargetAdress(url);
                 Jparse.setReturnReference(activityReference);
                 Jparse.execute();
                 //Jparse.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -319,5 +426,18 @@ public class KochbuchFragment extends Fragment implements RecycleViewOnClickList
         }
 
 
+    }
+
+    @Override
+    public void onRefresh() {
+        swipeLayout.setRefreshing(false);
+
+        Runnable r = () -> {
+            fr = new fetch_recipes(activityReference, rva, _RecipeModel);
+            fr.execute();
+        };
+
+        Handler h = new Handler();
+        swipeLayout.post(r);
     }
 }

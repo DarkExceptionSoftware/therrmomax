@@ -1,54 +1,44 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.ingredient;
 
-import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeDates;
-import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.db;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._Einkaufsliste;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.db_ig;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.setOnSelectedListener;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.icu.text.DateFormat;
-import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.IndrigentParser;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
-import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
-import com.darkexceptionsoftware.thermomax_calendar.data.Zutat;
-import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
-import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
+import com.darkexceptionsoftware.thermomax_calendar.data.UserDao_indrigent;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentIngredientBinding;
-import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
-import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_Kalender;
-import com.darkexceptionsoftware.thermomax_calendar.ui.home.HomeViewModel;
-import com.darkexceptionsoftware.thermomax_calendar.ui.home.RecycleViewAdapter_RecipeDate;
-import com.google.android.material.snackbar.Snackbar;
+import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_einkaufsliste;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
-public class IngredientFragment extends Fragment implements RecycleViewOnClickListener, action_bar_access {
+public class IngredientFragment extends Fragment implements if_RecycleViewOnClickListener, if_action_bar_access {
 
     private FragmentIngredientBinding binding;
     private SharedPreferences prefs;
@@ -57,6 +47,7 @@ public class IngredientFragment extends Fragment implements RecycleViewOnClickLi
     private RecycleViewAdapter_Ingredient rva;
     private MainActivity ref;
 
+    private int if_mode = 0;
     private int lastPosition = -1;
     private View mView, lastView;
 
@@ -79,7 +70,7 @@ public class IngredientFragment extends Fragment implements RecycleViewOnClickLi
         recyclerView = binding.rcvIngredient;
         rva = new RecycleViewAdapter_Ingredient(getActivity(), MainActivity._Einkaufsliste, this);
         recyclerView.setAdapter(rva);
-        recyclerView.setLayoutManager(new LinearLayoutManager((getContext())));
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rva.getSmoothScroller().setTargetPosition(MainActivity.get_rv_today_position());
         recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
 
@@ -107,48 +98,71 @@ public class IngredientFragment extends Fragment implements RecycleViewOnClickLi
 
     @Override
     public void onViewClick(View v, String action) {
-        Toast.makeText(getContext(), "List:", Toast.LENGTH_SHORT).show();
 
-        if (v != lastView)
-            setButtons(lastView, View.GONE);
-
-        setButtons(v, View.VISIBLE);
-
-        lastView = v;
-    }
-
-    public void setButtons(View v, int vis) {
-
-        if (v != null) {
-            Button rcv_ind_btn1 = v.findViewById(R.id.rcv_ind_btn1);
-            Button rcv_ind_btn2 = v.findViewById(R.id.rcv_ind_btn2);
-            Button rcv_ind_btn3 = v.findViewById(R.id.rcv_ind_btn3);
-            rcv_ind_btn1.setVisibility(vis);
-            rcv_ind_btn2.setVisibility(vis);
-            rcv_ind_btn3.setVisibility(vis);
-        }
     }
 
 
     @Override
     public void onItemClick(int position, String action) {
+        UserDao_indrigent userDao_indrigent = MainActivity.db_ig.userDao();
+
+        if (if_mode == 2) {
+            String name = _Einkaufsliste.get(position).getName();
+            int type = _Einkaufsliste.get(position).getSortof();
+            userDao_indrigent.deleteByName(name);
+            clickedAddbutton();
+
+        }
 
     }
 
     @Override
     public void onItemlongClick(int position, String action) {
-        Toast.makeText(getContext(), "2", Toast.LENGTH_SHORT).show();
+        if (if_mode == 1) {
 
+            Toast.makeText(getContext(), "2", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), ContextMenu_einkaufsliste.class);
+            intent.putExtra("action", "show");
+            intent.putExtra("name", _Einkaufsliste.get(position).getName());
+            startActivityForResult(intent, 1);
+        }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Toast.makeText(getContext(), "3", Toast.LENGTH_SHORT).show();
 
+        super.onActivityResult(requestCode, resultCode, data);
+
+        int cat = -1;
+        String name = "";
+        String url = "about:blank";
+        try {
+            Bundle extras = data.getExtras();
+
+
+            if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+                if (extras != null) {
+                    String action = extras.getString("action", "none");
+
+                    if (action.equals("cat")) {
+                        name = extras.getString("indname", "none");
+                        cat = extras.getInt("category", 0);
+                        db_ig.userDao().insertAll(new IndrigentModel(name.toUpperCase(Locale.ROOT).trim(), cat));
+                    }
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+        Toast.makeText(getContext(), name + " = " + cat, Toast.LENGTH_SHORT).show();
+
+        clickedHomebutton();
     }
 
     @Override
     public void clickedHomebutton() {
+        if_mode = 1;
         Toast.makeText(getContext(), "4", Toast.LENGTH_SHORT).show();
         List<Indrigent> il = MainActivity.get_Einkaufsliste();
         List<DateModel> dl = MainActivity.get_RecipeDates_week();
@@ -163,30 +177,32 @@ public class IngredientFragment extends Fragment implements RecycleViewOnClickLi
         iResult.sort(Comparator.comparing(Indrigent::getName));
 
         il.clear();
-        il.addAll(iResult);
+        IndrigentParser ip = MainActivity.getIndrigentParser();
+        il.addAll(ip.outputList_db(iResult));
         rva.notifyDataSetChanged();
         lastView = null;
     }
 
     @Override
     public void clickedAddbutton() {
+        if_mode = 2;
+
         Toast.makeText(getContext(), "5", Toast.LENGTH_SHORT).show();
+        UserDao_indrigent userDao_indrigent = MainActivity.db_ig.userDao();
+
         List<DateModel> dl = MainActivity.get_RecipeDates_week();
         List<Indrigent> il = MainActivity.get_Einkaufsliste();
         List<Indrigent> iResult = new ArrayList<>();
 
-        HashMap rm = MainActivity.getRecipeMap();
-
-        for (DateModel ditem : dl) {
-            RecipeModel r = (RecipeModel) rm.get(ditem.getModel());
-            if (r != null)
-                iResult.addAll(r.getINDRIGENTS());
-        }
-        iResult.sort(Comparator.comparing(Indrigent::getName));
-
         il.clear();
-        IndrigentParser ip = MainActivity.getIndrigentParser();
-        il.addAll(ip.outputList(iResult));
+        List<IndrigentModel> rml = (ArrayList<IndrigentModel>) userDao_indrigent.getAll();
+
+        for (IndrigentModel item : rml) {
+            il.add(new Indrigent(0f, "", item.getName_de(), item.getType()));
+        }
+        il.sort(Comparator.comparing(Indrigent::getName));
+        il.sort(Comparator.comparing(Indrigent::getSortof));
+
 
         rva.notifyDataSetChanged();
         lastView = null;
@@ -202,6 +218,21 @@ public class IngredientFragment extends Fragment implements RecycleViewOnClickLi
     @Override
     public void clickedFab2() {
         Toast.makeText(getContext(), "7", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void clicked_m1_Button() {
+
+    }
+
+    @Override
+    public void clicked_m3_Button() {
+
+    }
+
+    @Override
+    public void clicked_m2_Button() {
 
     }
 }

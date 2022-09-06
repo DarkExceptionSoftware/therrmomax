@@ -12,15 +12,14 @@ import java.util.Date;
 
 @Entity
 public class DateModel {
+    private final static SimpleDateFormat format_ymd = new SimpleDateFormat("yyyy-MM-dd");
+    private final static SimpleDateFormat format_day = new SimpleDateFormat("EE");
     @PrimaryKey(autoGenerate = true)
     public int uid;
-
     @ColumnInfo(name = "name")
     private String name;
-
     @ColumnInfo(name = "creation_date")
     private Long modelID;
-
     @ColumnInfo(name = "date")
     private Long date;
     @ColumnInfo(name = "user")
@@ -29,8 +28,6 @@ public class DateModel {
     private int status;
     @ColumnInfo(name = "color")
     private int backcolor;
-    private final static SimpleDateFormat format_ymd = new SimpleDateFormat("yyyy-MM-dd");
-    private final static SimpleDateFormat format_day = new SimpleDateFormat("EE");
 
     public DateModel(Long modelID, Long date, String user, int status, int backcolor) {
         this.modelID = modelID;
@@ -76,6 +73,10 @@ public class DateModel {
         return date;
     }
 
+    public void setDate(Long date) {
+        this.date = date;
+    }
+
     public String getStringDate(){
 
         String datestring = format_ymd.format(new Date(date));
@@ -86,11 +87,6 @@ public class DateModel {
 
         String datestring = format_day.format(new Date(date)).replace(".","");
         return datestring;
-    }
-
-
-    public void setDate(Long date) {
-        this.date = date;
     }
 
     public String getUser() {

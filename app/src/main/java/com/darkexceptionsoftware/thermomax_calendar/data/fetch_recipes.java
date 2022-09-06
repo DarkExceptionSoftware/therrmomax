@@ -42,7 +42,7 @@ public class  fetch_recipes extends AsyncTask<String, Void, String> {
 
 
         RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
-        File directory = new File(RecDir);
+        File directory = new File(activityReference.getApplicationContext().getFilesDir(),"");
 
 
         files = Arrays.asList(directory.list());
@@ -50,7 +50,7 @@ public class  fetch_recipes extends AsyncTask<String, Void, String> {
         MainActivity ref = (MainActivity) activityReference;
         Collections.sort(files,Collections.reverseOrder());
 
-        if (!files.equals(ref.old_files)){
+        //if (!files.equals(ref.old_files)){
             dialog = new ProgressDialog(activityReference);
             dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             dialog.setCancelable(false);
@@ -58,7 +58,7 @@ public class  fetch_recipes extends AsyncTask<String, Void, String> {
         dialog.setMax(files.size());
         dialog.show();
 
-        }
+        //}
 
 
     }

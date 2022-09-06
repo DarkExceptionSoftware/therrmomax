@@ -34,41 +34,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class RecipeModel implements Serializable, Parcelable {
 
-    private long id;
-    private String url;
-    private String name;
-    private String creator;
-
-    protected RecipeModel(Parcel in) {
-        id = in.readLong();
-        url = in.readString();
-        name = in.readString();
-        creator = in.readString();
-        Summary = in.readString();
-        ImagePath = in.readString();
-        tips = in.readString();
-        CryptedID = in.readString();
-        INDRIGENTS = in.createTypedArrayList(Indrigent.CREATOR);
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(url);
-        dest.writeString(name);
-        dest.writeString(creator);
-        dest.writeString(Summary);
-        dest.writeString(ImagePath);
-        dest.writeString(tips);
-        dest.writeString(CryptedID);
-        dest.writeTypedList(INDRIGENTS);
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
     public static final Creator<RecipeModel> CREATOR = new Creator<RecipeModel>() {
         @Override
         public RecipeModel createFromParcel(Parcel in) {
@@ -80,18 +45,13 @@ public class RecipeModel implements Serializable, Parcelable {
             return new RecipeModel[size];
         }
     };
-
-    public String getCreator() {
-        return creator;
-    }
-
-
-    public void setCreator(String creator) {
-        this.creator = creator;
-    }
-
+    private long id;
+    private String url;
+    private String name;
+    private String creator;
     private String Summary;
     private String ImagePath;
+    private String ImagePath_internal;
     private transient Bitmap picture;
     private transient Context context;
     private transient List<Indrigent> INDRIGENTS;
@@ -100,6 +60,18 @@ public class RecipeModel implements Serializable, Parcelable {
     private String CryptedID;
     private transient String filename;
     private java.lang.Object Object;
+    protected RecipeModel(Parcel in) {
+        id = in.readLong();
+        url = in.readString();
+        name = in.readString();
+        creator = in.readString();
+        Summary = in.readString();
+        ImagePath = in.readString();
+        ImagePath_internal = in.readString();
+        tips = in.readString();
+        CryptedID = in.readString();
+        INDRIGENTS = in.createTypedArrayList(Indrigent.CREATOR);
+    }
     public RecipeModel(Context context, int id, String _name, String _summary, Bitmap _picture, String _tips) {
         this.context = context;
         this.id = id;
@@ -108,6 +80,7 @@ public class RecipeModel implements Serializable, Parcelable {
         this.tips = _tips;
         this.picture = _picture;
     }
+
     public RecipeModel(Context context) throws MalformedURLException, PackageManager.NameNotFoundException {
         reset(context);
     }
@@ -131,6 +104,41 @@ public class RecipeModel implements Serializable, Parcelable {
         }
 
         return null;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(url);
+        dest.writeString(name);
+        dest.writeString(creator);
+        dest.writeString(Summary);
+        dest.writeString(ImagePath);
+        dest.writeString(ImagePath_internal);
+        dest.writeString(tips);
+        dest.writeString(CryptedID);
+        dest.writeTypedList(INDRIGENTS);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public String getImagePath_internal() {
+        return ImagePath_internal;
+    }
+
+    public void setImagePath_internal(String imagePath_internal) {
+        ImagePath_internal = imagePath_internal;
     }
 
     public String getUrl() {
@@ -227,7 +235,7 @@ public class RecipeModel implements Serializable, Parcelable {
 
         String ImageDir = context.getApplicationInfo().dataDir + "/files/rImages/";
         ImagePath = ImageDir + "noimage.png";
-
+        ImagePath_internal = "";
         Bitmap bMap= BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_baseline_dining_24);
 
         try {
@@ -391,6 +399,7 @@ public class RecipeModel implements Serializable, Parcelable {
         this.tips =  o.getTips();
         this.CryptedID = o.getCryptedID();
         this.ImagePath = o.getImagePath();
+        this.ImagePath_internal = o.getImagePath_internal();
 
         //lade cookactions und indrigents
 

@@ -41,6 +41,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:layout_margin="8dp"
                     android:gravity="bottom"
                     android:lines="2"
                     android:maxLines="2"
@@ -69,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/sample" />
+                    app:srcCompat="@drawable/img_norecipepic" />
 
                 <WebView
                     android:id="@+id/rv_rcp_webview"

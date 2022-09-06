@@ -14,4 +14,20 @@
     <string name="title_activity_webview">WebView</string>
     <string name="hinweis_kochbuch">Bitte füge Rezepte hinzu.</string>
     <string name="menu_ingredients">Einkaufsliste</string>
+    <string name="tip_7days">Es sind noch keine Rezepte für diese Woche geplant.\n\n
+    Bitte gehe ins Kochbuch und lege fest,
+    was Du in den nächsten 7 Tagen kochen möchtest!</string>
+    <string name="tip_cb">Es sind noch keine Rezepte vorhanden.\n\n
+    Füge Rezepte selbst, oder aus dem Internet
+    mit dem Add-Button hinzu!</string>
+    <string name="auf">auf</string>
+    <string name="zu">zu</string>
+    <string name="nr_desc_image">Bild</string>
+    <string name="nr_desc_name">Rezeptname</string>
+    <string name="nr_desc_indrigents">Zutatenliste</string>
+    <string name="nr_desc_summary">Vorgehensweise</string>
+    <string name="nr_desc_submit">Speichern</string>
+    <string name="nr_desc_preview_on">Vorschau</string>
+    <string name="nr_desc_preview_off">Nochmal bearbeiten</string>
+
 </resources>

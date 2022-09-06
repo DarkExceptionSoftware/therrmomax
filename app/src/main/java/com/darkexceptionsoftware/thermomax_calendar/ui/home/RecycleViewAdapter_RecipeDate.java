@@ -22,8 +22,7 @@ import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
-import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_Kalender;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Detail;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -34,7 +33,7 @@ import java.util.List;
 
 public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleViewAdapter_RecipeDate.MyViewHolder> {
 
-    private static RecycleViewOnClickListener itemListener;
+    private static if_RecycleViewOnClickListener itemListener;
 
 
     Context context;
@@ -57,7 +56,7 @@ public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleV
     Date lastdate;
 
 
-    public RecycleViewAdapter_RecipeDate(Activity activityReference, ArrayList<DateModel> DateModels, RecycleViewOnClickListener recyclerViewClickListener) {
+    public RecycleViewAdapter_RecipeDate(Activity activityReference, ArrayList<DateModel> DateModels, if_RecycleViewOnClickListener recyclerViewClickListener) {
 
         this.activityReference = activityReference;
         this.context = activityReference.getApplicationContext();
@@ -157,7 +156,8 @@ public class RecycleViewAdapter_RecipeDate extends RecyclerView.Adapter<RecycleV
             // VERALTET ???
             if (today.after(new Date(date))) {
 
-                holder.rv_cardView.setCardBackgroundColor(DateModels.get(position).getBackcolor());
+                // holder.rv_cardView.setCardBackgroundColor(DateModels.get(position).getBackcolor());
+                holder.rv_cardView.setCardBackgroundColor(context.getResources().getColor(R.color.rv_back_2, context.getTheme()));
             }
 
             // HEUTE ???

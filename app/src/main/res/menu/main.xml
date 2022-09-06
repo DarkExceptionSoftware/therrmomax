@@ -2,16 +2,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/menu_recipe_3"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="LidlKochen"
         app:showAsAction="never" />
-    <item android:title="Item" />
+    <item
+        android:id="@+id/menu_recipe_1"
+        android:icon="@drawable/ic_baseline_thumb_up_24"
+        android:title="Eigenes Rezept"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_rv_add"
         android:icon="@drawable/post_add"
         android:title="Chefkoch"
         app:showAsAction="always|withText" />
+    <item
+        android:id="@+id/menu_recipe_2"
+        android:title="Chefkoch.de" />
+
     <item
         android:id="@+id/action_rv_home"
         android:icon="@drawable/ic_baseline_home_24"

@@ -29,5 +29,6 @@ public interface UserDao {
 
     @Query("DELETE FROM DateModel")
     void delete();
+
 }
 

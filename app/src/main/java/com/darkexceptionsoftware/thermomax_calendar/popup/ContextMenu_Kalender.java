@@ -84,13 +84,12 @@ public class ContextMenu_Kalender extends AppCompatActivity {
         this.setFinishOnTouchOutside(true);
 
 
-        CardView cmv_1, cmv_2, cmv_3;
         DatePicker cm_dp;
 
         Button button = findViewById(R.id.cmv_3_confirm);
 
 
-        b.cmv1.setOnClickListener(new View.OnClickListener() {
+        b.cmvPlan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(activityReference, com.darkexceptionsoftware.thermomax_calendar.popup.TimePicker.class);
@@ -102,14 +101,14 @@ public class ContextMenu_Kalender extends AppCompatActivity {
             }
         });
 
-        b.cmv2.setOnClickListener(new View.OnClickListener() {
+        b.cmvEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
             }
         });
 
-        b.cmv3.setOnClickListener(new View.OnClickListener() {
+        b.cmvDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 

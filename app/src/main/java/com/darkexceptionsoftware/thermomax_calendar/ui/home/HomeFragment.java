@@ -1,7 +1,6 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.home;
 
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeDates;
-import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeModel;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.db;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.setOnSelectedListener;
 
@@ -12,11 +11,9 @@ import android.content.SharedPreferences;
 import android.icu.text.DateFormat;
 import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,17 +27,16 @@ import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.DateModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.UserDao;
-import com.darkexceptionsoftware.thermomax_calendar.data.action_bar_access;
-import com.darkexceptionsoftware.thermomax_calendar.data.RecycleViewOnClickListener;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
+import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
 import com.darkexceptionsoftware.thermomax_calendar.popup.Confirm;
 import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_Kalender;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 
-public class HomeFragment extends Fragment implements RecycleViewOnClickListener, action_bar_access {
+public class HomeFragment extends Fragment implements if_RecycleViewOnClickListener, if_action_bar_access {
 
     private FragmentHomeBinding binding;
     private SharedPreferences prefs;
@@ -209,6 +205,21 @@ public class HomeFragment extends Fragment implements RecycleViewOnClickListener
 
     @Override
     public void clickedFab2() {
+
+    }
+
+    @Override
+    public void clicked_m1_Button() {
+
+    }
+
+    @Override
+    public void clicked_m3_Button() {
+
+    }
+
+    @Override
+    public void clicked_m2_Button() {
 
     }
 }

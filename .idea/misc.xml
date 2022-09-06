@@ -27,27 +27,43 @@
         <entry key="..\:/Users/Darkjoy2k2/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/webview.xml" value="0.23867753623188406" />
         <entry key="..\:/Users/Darkjoy2k2/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/menu/activity_main_drawer.xml" value="0.31354166666666666" />
         <entry key="..\:/Users/Darkjoy2k2/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/menu/main.xml" value="0.25" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable-v31/post_add.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/gradient_button.xml" value="0.105" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/gradient_button_inverse.xml" value="0.1265" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/gradient_left.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/gradient_trending.xml" value="0.1265" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/icon_circle.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/icon_kochbuch_notice.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/icon_menu.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/icon_menu_notice.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/icon_post_add_notice.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/post_add.xml" value="0.12" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/post_add_notice.xml" value="0.1735" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/refresh.xml" value="0.1265" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/drawable/strokebackground.xml" value="0.1265" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/activity_display_message.xml" value="0.1" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/app_bar_main.xml" value="0.33" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/content_main.xml" value="0.22" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/custom_tab.xml" value="0.2" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_date.xml" value="0.15" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_editrecipe.xml" value="0.16832504145936983" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_home.xml" value="0.33" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_ingredient.xml" value="0.134375" />
-        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_kochbuch.xml" value="0.67" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_kochbuch.xml" value="0.33" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/fragment_webview.xml" value="0.1" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/nav_header_main.xml" value="0.22" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_confirm.xml" value="0.16" />
-        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_context_menu.xml" value="0.75" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_context_menu.xml" value="0.5" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_license.xml" value="0.1" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_time_picker.xml" value="0.67" />
-        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_calendar.xml" value="0.75" />
-        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_ingredient.xml" value="0.35645472061657035" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/popup_value_editor.xml" value="0.1" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_calendar.xml" value="0.17590027700831026" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_ingredient.xml" value="0.5" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_recipe.xml" value="0.22" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/layout/rcv_row_recipe_detail.xml" value="0.33" />
         <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/menu/activity_main_drawer.xml" value="0.15104166666666666" />
-        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/menu/main.xml" value="0.15104166666666666" />
+        <entry key="..\:/Users/Gerd/AndroidStudioProjects/Thermomax_Calendar/app/src/main/res/menu/main.xml" value="0.6521739130434783" />
       </map>
     </option>
   </component>

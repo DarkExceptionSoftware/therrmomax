@@ -1,18 +1,17 @@
 package com.darkexceptionsoftware.thermomax_calendar.popup;
 
-import android.annotation.SuppressLint;
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeModel;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -20,15 +19,10 @@ import android.widget.TimePicker;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-import com.bumptech.glide.Glide;
 import com.darkexceptionsoftware.thermomax_calendar.R;
-import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
-import com.darkexceptionsoftware.thermomax_calendar.databinding.RcvRowRecipeDetailBinding;
-import com.darkexceptionsoftware.thermomax_calendar.web.WebViewClass;
 
 import java.io.File;
-import java.util.List;
 
 public class ContextMenu_kochbuch extends AppCompatActivity {
     private Activity activityReference;
@@ -42,14 +36,15 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Bundle extras = data.getExtras();
-
-
-        Intent returnIntent = new Intent();
-        returnIntent.putExtras(extras);
-        setResult(Activity.RESULT_OK, returnIntent);
+        if (data != null) {
+            Bundle extras = data.getExtras();
+            Intent returnIntent = new Intent();
+            returnIntent.putExtras(extras);
+            setResult(Activity.RESULT_OK, returnIntent);
+        }
         finish();
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -64,7 +59,7 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
 
 
         this.activityReference = this;
-       Intent intent = getIntent();
+        Intent intent = getIntent();
         position = intent.getIntExtra("pos", -1);
         RecipeModel info = intent.getParcelableExtra("info");
 
@@ -73,23 +68,12 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         this.setFinishOnTouchOutside(true);
 
 
-        CardView cmv_1,cmv_2,cmv_3;
-        DatePicker cm_dp ;
+        Button cmv_1, cmv_2, cmv_3;
 
-        TimePicker cm_tp;
 
-        TextView cmv_1_message, cmv_2_message, cmv_3_message;
-
-        cm_dp = findViewById(R.id.cm_dp);
-        cm_tp = findViewById(R.id.cm_tp);
-
-        cmv_1 = findViewById(R.id.cmv_1);
-        cmv_2 = findViewById(R.id.cmv_2);
-        cmv_3 = findViewById(R.id.cmv_3);
-
-        cmv_1_message = findViewById(R.id.cmv_1_message);
-        cmv_2_message = findViewById(R.id.cmv_2_message);
-        cmv_3_message = findViewById(R.id.cmv_3_message);
+        cmv_1 = findViewById(R.id.cmv_plan);
+        cmv_2 = findViewById(R.id.cmv_edit);
+        cmv_3 = findViewById(R.id.cmv_delete);
 
         Button button = findViewById(R.id.cmv_3_confirm);
 
@@ -108,7 +92,12 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         cmv_2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent(activityReference, NewRecipe.class);
+                intent.putExtra("action", "edit");
+                intent.putExtra("pos", position);
+                intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
 
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -136,12 +125,12 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
     }
 
 
-    public boolean delete(String _RecDir, String _filename){
+    public boolean delete(String _RecDir, String _filename) {
         boolean myFile;
-        _filename +=".rcp";
-        myFile = new File(_RecDir + _filename + "/",  "recipe.rcp").delete();
-        myFile = new File(_RecDir + _filename + "/",  "indrigents.ind").delete();
-        myFile = new File(_RecDir + _filename + "/",  "image.png").delete();
+        _filename += ".rcp";
+        myFile = new File(_RecDir + _filename + "/", "recipe.rcp").delete();
+        myFile = new File(_RecDir + _filename + "/", "indrigents.ind").delete();
+        myFile = new File(_RecDir + _filename + "/", "image.png").delete();
         myFile = new File(_RecDir + _filename + "/").delete();
 
         return myFile;
@@ -152,8 +141,8 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         Intent returnIntent = new Intent();
         returnIntent.putExtra("action", "nothing");
         setResult(Activity.RESULT_OK, returnIntent);
-            finish();
-            return true;
+        finish();
+        return true;
 
     }
 
@@ -164,11 +153,6 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
 
         this.activityReference = _activityReference;
     }
-
-
-
-
-
 
 
 }
