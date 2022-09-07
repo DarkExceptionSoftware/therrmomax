@@ -26,6 +26,7 @@ import com.darkexceptionsoftware.thermomax_calendar.data.UserDao_indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -71,12 +72,31 @@ public class MainActivity extends AppCompatActivity {
     static NavigationView navigationView;
     private static HashMap<Long, RecipeModel> RecipeMap = new HashMap<Long, RecipeModel>();
     private static Activity activityReference;
+
     private static Menu mOptionsMenu;
     private static IndrigentParser indrigentParser;
     private static UserDao_indrigent userDao_indrigent;
     private static Toolbar toolbar;
     public List<String> old_files;
     public static Activity ref;
+
+    public static int getmMainLayout() {
+        return mMainLayout;
+    }
+
+    public static void setmMainLayout(int mMainLayout) {
+        MainActivity.mMainLayout = mMainLayout;
+    }
+
+    private static int mMainLayout = R.menu.main;
+
+    public static Toolbar getToolbar() {
+        return toolbar;
+    }
+
+    public static void setToolbar(Toolbar toolbar) {
+        MainActivity.toolbar = toolbar;
+    }
 
     public ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -97,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
     private Context mContext;
-    private boolean actionbuttonstate = true;
 
     public static ArrayList<IndrigentModel> get_Indrigents() {
         return _Indrigents;
@@ -238,8 +257,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void change_appbar_icons(int drawable) {
-        // if (mOptionsMenu != null)
-        // mOptionsMenu.findItem(R.id.action_rv_add).setIcon(drawable);
 
         if (toolbar != null) {
             Drawable d = ContextCompat.getDrawable(ref.getApplicationContext(), drawable);
@@ -250,7 +267,6 @@ public class MainActivity extends AppCompatActivity {
     public static void change_navbar_icons(int drawable) {
         if (toolbar != null) {
             toolbar.setNavigationIcon(drawable);
-
         }
     }
 
@@ -274,12 +290,7 @@ public class MainActivity extends AppCompatActivity {
 
     ;
 
-    public static void button_visibility(int id, boolean state) {
-        if (mOptionsMenu != null)
-            mOptionsMenu.findItem(id).setVisible(state);
-        //mOptionsMenu.findItem(R.id.action_rv_home).setVisible(false);
 
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -334,20 +345,8 @@ public class MainActivity extends AppCompatActivity {
         Drawable d = toolbar.getNavigationIcon();
 
 
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-                mCallback.clickedFab1();
-            }
-        });
-        binding.appBarMain.fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
 
-                mCallback.clickedFab2();
-            }
-        });
 
         DrawerLayout drawer = binding.drawerLayout;
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.auf, R.string.zu);
@@ -370,12 +369,17 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+        FloatingActionButton b;
+        b = findViewById(R.id.fab);
+        b.setVisibility(View.GONE);
+        b = findViewById(R.id.fab2);
+        b.setVisibility(View.GONE);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(mMainLayout, menu);
 
         mOptionsMenu = menu;
         return true;
@@ -384,18 +388,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.action_rv_add).setVisible(actionbuttonstate);
-        menu.findItem(R.id.action_rv_home).setVisible(actionbuttonstate);
+
         return true;
     }
 
-    public boolean isActionbuttonstate() {
-        return actionbuttonstate;
-    }
 
-    public void setActionbuttonstate(boolean actionbuttonstate) {
-        this.actionbuttonstate = actionbuttonstate;
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -404,17 +401,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_rv_home) {
-            mCallback.clickedHomebutton();
-            return true;
-        }
-        if (id == R.id.menu_recipe_1) {
-            mCallback.clicked_m1_Button();
-        }
-        if (id == R.id.menu_recipe_2) {
-            mCallback.clicked_m2_Button();
-        }
+        mCallback.clicked_button(id);
 
         return super.onOptionsItemSelected(item);
     }

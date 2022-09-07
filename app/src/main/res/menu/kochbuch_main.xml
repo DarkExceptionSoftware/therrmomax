@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_new_recipe"
+        android:icon="@drawable/ic_baseline_thumb_up_24"
+        android:title="Eigenes Rezept"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_recipe_3"
+        android:orderInCategory="100"
+        android:title="LidlKochen"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_fetch_ck"
+        android:title="Chefkoch.de"
+        app:showAsAction="never" />
+
+</menu>

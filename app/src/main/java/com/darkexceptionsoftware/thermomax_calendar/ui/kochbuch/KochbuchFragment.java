@@ -14,10 +14,13 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -85,6 +88,14 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         _RecipeModel = recipes;
     }
 
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+    {
+        inflater.inflate(R.menu.kochbuch_main, menu);
+        return;
+    }
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         KochbuchViewModel galleryViewModel =
@@ -92,6 +103,8 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         activityReference = getActivity();
 
         ref = (MainActivity) activityReference;
+        ref.setmMainLayout(R.menu.kochbuch_main);
+        ref.invalidateOptionsMenu();
 
         binding = FragmentKochbuchBinding.inflate(inflater, container, false);
         RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
@@ -115,14 +128,6 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         rva.getSmoothScroller().setTargetPosition(MainActivity.get_rv_today_position());
         recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
-
-
-        // fr = new fetch_recipes(activityReference, rva, _RecipeModel);
-        // fr.execute();
-
-        ref.setActionbuttonstate(true);
-        ref.invalidateOptionsMenu();
-
 
         binding.textView3.setText(R.string.tip_cb);
         binding.tipIcon.setVisibility(View.VISIBLE);
@@ -171,19 +176,8 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         stop = false;
         handler.postDelayed(runnable, 900);
 
+        ref.invalidateOptionsMenu();
 
-
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                MainActivity.button_visibility(R.id.action_rv_add,false);
-                MainActivity.button_visibility(R.id.action_rv_home,false);
-
-            }
-        };
-
-        Handler h = new Handler();
-        h.postDelayed(r, 1000);
 
         return root;
     }
@@ -197,39 +191,25 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
     }
 
     @Override
-    public void clickedHomebutton() {
+    public void clicked_button(int id) {
 
+        Intent intent;
+
+        switch (id){
+            case R.id.menu_new_recipe:
+                intent = new Intent(activityReference, NewRecipe.class);
+                intent.putExtra("action", "newRecipe");
+                startActivityForResult(intent, 1);
+                break;
+            case R.id.menu_fetch_ck:
+                intent = new Intent(activityReference, WebViewClass.class);
+                // TextView editText = (TextView) findViewById(R.id.confirm_label);
+                intent.putExtra("action", "findWeb");
+                intent.putExtra("url", "https:////www.chefkoch.de////");
+                startActivityForResult(intent, 1);
+                break;
+        }
     }
-
-    @Override
-    public void clickedAddbutton() {
-        Intent intent = new Intent(activityReference, WebViewClass.class);
-        // TextView editText = (TextView) findViewById(R.id.confirm_label);
-        intent.putExtra("action", "findWeb");
-        intent.putExtra("url", "https:////www.chefkoch.de////");
-
-        startActivityForResult(intent, 1);
-
-
-    }
-
-    @Override
-    public void clicked_m1_Button() {
-        Intent intent = new Intent(activityReference, NewRecipe.class);
-        intent.putExtra("action", "newRecipe");
-        intent.putExtra("url", "https:////www.chefkoch.de////");
-        startActivityForResult(intent, 1);
-    }
-
-    @Override
-    public void clicked_m2_Button() {
-        Intent intent = new Intent(activityReference, WebViewClass.class);
-        // TextView editText = (TextView) findViewById(R.id.confirm_label);
-        intent.putExtra("action", "findWeb");
-        intent.putExtra("url", "https:////www.chefkoch.de////");
-        startActivityForResult(intent, 1);
-    }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -405,6 +385,8 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         // TextView editText = (TextView) findViewById(R.id.confirm_label);
         intent.putExtra("action", "show");
         intent.putExtra("pos", position);
+        intent.putExtra("edit", 1);
+
         intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
         startActivityForResult(intent, 1);
     }

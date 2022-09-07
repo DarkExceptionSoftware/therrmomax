@@ -1,11 +1,16 @@
 package com.darkexceptionsoftware.thermomax_calendar.ui.sevenDays;
 
+import static com.darkexceptionsoftware.thermomax_calendar.MainActivity._RecipeModel;
 import static com.darkexceptionsoftware.thermomax_calendar.MainActivity.setOnSelectedListener;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -22,6 +27,8 @@ import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_RecycleViewOnClickListener;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentKochbuchBinding;
+import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_kochbuch;
+import com.darkexceptionsoftware.thermomax_calendar.popup.Detail;
 import com.darkexceptionsoftware.thermomax_calendar.ui.kochbuch.RecycleViewAdapter_Recipe;
 
 public class sevenDaysFragment extends Fragment implements if_RecycleViewOnClickListener, if_action_bar_access {
@@ -41,6 +48,8 @@ public class sevenDaysFragment extends Fragment implements if_RecycleViewOnClick
         activityReference = getActivity();
         ref = (MainActivity) activityReference;
 
+        ref.setmMainLayout(R.menu.seven_main);
+        ref.invalidateOptionsMenu();
 
         binding = FragmentKochbuchBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -77,8 +86,7 @@ public class sevenDaysFragment extends Fragment implements if_RecycleViewOnClick
             binding.tipCard.setVisibility(View.VISIBLE);
         }
 
-        ref.setActionbuttonstate(false);
-        ref.invalidateOptionsMenu();
+
 
         handler = new Handler();
         runnable = new Runnable() {
@@ -130,59 +138,38 @@ public class sevenDaysFragment extends Fragment implements if_RecycleViewOnClick
         binding = null;
     }
 
+
+
     @Override
     public void onItemClick(int position, String action) {
-        Toast.makeText(getContext(),"1", Toast.LENGTH_SHORT).show();
+        if (action.equals("show")) {
+            // confirm.showPopupWindow(activityReference.getCurrentFocus());
 
+
+            Intent intent = new Intent(getContext(), Detail.class);
+            // TextView editText = (TextView) findViewById(R.id.confirm_label);
+            intent.putExtra("action", "show");
+            intent.putExtra("pos", position);
+            intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
+            startActivity(intent);
+        }
     }
 
     @Override
     public void onItemlongClick(int position, String action) {
-        Toast.makeText(getContext(),"2", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getContext(), ContextMenu_kochbuch.class);
+        // TextView editText = (TextView) findViewById(R.id.confirm_label);
+        intent.putExtra("action", "show");
+        intent.putExtra("edit", 0);
+        intent.putExtra("pos", position);
 
+        intent.putExtra("info", (Parcelable) _RecipeModel.get(position));
+        startActivityForResult(intent, 1);
     }
+
 
     @Override
     public void onViewClick(View view, String action) {
-
-    }
-
-    @Override
-    public void clickedHomebutton() {
-        Toast.makeText(getContext(),"3", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clickedAddbutton() {
-        Toast.makeText(getContext(),"4", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clickedFab1() {
-        Toast.makeText(getContext(),"5", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clickedFab2() {
-        Toast.makeText(getContext(),"6", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clicked_m1_Button() {
-
-    }
-
-    @Override
-    public void clicked_m3_Button() {
-
-    }
-
-    @Override
-    public void clicked_m2_Button() {
 
     }
 }

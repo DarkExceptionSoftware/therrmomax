@@ -61,6 +61,7 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
         this.activityReference = this;
         Intent intent = getIntent();
         position = intent.getIntExtra("pos", -1);
+        int edit = intent.getIntExtra("edit", -1);
         RecipeModel info = intent.getParcelableExtra("info");
 
         setContentView(R.layout.popup_context_menu);
@@ -89,6 +90,9 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
             }
         });
 
+        if (edit != 0){
+
+
         cmv_2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -100,6 +104,9 @@ public class ContextMenu_kochbuch extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
+        }else{
+            cmv_2.setVisibility(View.GONE);
+        }
 
         cmv_3.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -59,6 +59,12 @@ public class HomeFragment extends Fragment implements if_RecycleViewOnClickListe
         HomeViewModel homeViewModel =
                 new ViewModelProvider(this).get(HomeViewModel.class);
 
+        activityReference = getActivity();
+
+        ref = (MainActivity) activityReference;
+        ref.setmMainLayout(R.menu.main);
+        ref.invalidateOptionsMenu();
+
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -179,47 +185,14 @@ public class HomeFragment extends Fragment implements if_RecycleViewOnClickListe
     }
 
     @Override
-    public void clickedHomebutton() {
-        // recyclerView.getLayoutManager().scrollToPosition(rv_today_position);
-        rva.getSmoothScroller().setTargetPosition(MainActivity.rv_today_position);
-        recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
+    public void clicked_button(int id) {
 
-
-        Toast.makeText(getContext(), "Focusing today", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clickedAddbutton() {
-
-        MainActivity.get_RecipeDates().clear();
-        db.userDao().delete();
-        rva.notifyDataSetChanged();
-    }
-
-    @Override
-    public void clickedFab1() {
-        Snackbar.make(getView(), "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-    }
-
-    @Override
-    public void clickedFab2() {
-
-    }
-
-    @Override
-    public void clicked_m1_Button() {
-
-    }
-
-    @Override
-    public void clicked_m3_Button() {
-
-    }
-
-    @Override
-    public void clicked_m2_Button() {
-
+        switch (id){
+            case R.id.action_rv_home:
+                rva.getSmoothScroller().setTargetPosition(MainActivity.rv_today_position);
+                recyclerView.getLayoutManager().startSmoothScroll(rva.getSmoothScroller());
+                Toast.makeText(getContext(), "Focusing today", Toast.LENGTH_SHORT).show();
+                break;
+        }
     }
 }

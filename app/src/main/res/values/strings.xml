@@ -20,6 +20,8 @@
     <string name="tip_cb">Es sind noch keine Rezepte vorhanden.\n\n
     Füge Rezepte selbst, oder aus dem Internet
     mit dem Add-Button hinzu!</string>
+    <string name="tip_einkaufsliste">Die Einkaufsliste wird aus den Rezeoten zusammen gestellt die Du in den nächsten 7 Tagen geplant hast.
+    Klicke LANGE auf eine Zutat, um sie einer Kategorie zuzuordnen.</string>
     <string name="auf">auf</string>
     <string name="zu">zu</string>
     <string name="nr_desc_image">Bild</string>

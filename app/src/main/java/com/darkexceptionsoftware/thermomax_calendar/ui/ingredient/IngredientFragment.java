@@ -31,6 +31,7 @@ import com.darkexceptionsoftware.thermomax_calendar.data.UserDao_indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentIngredientBinding;
 import com.darkexceptionsoftware.thermomax_calendar.popup.ContextMenu_einkaufsliste;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -62,6 +63,12 @@ public class IngredientFragment extends Fragment implements if_RecycleViewOnClic
 
         IngredientViewModel ingredientViewModel =
                 new ViewModelProvider(this).get(IngredientViewModel.class);
+        ref.setmMainLayout(R.menu.shop_main);
+        ref.invalidateOptionsMenu();
+
+
+
+
 
         binding = FragmentIngredientBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -86,6 +93,7 @@ public class IngredientFragment extends Fragment implements if_RecycleViewOnClic
             }
         });
         MainActivity.change_appbar_icons(R.drawable.refresh);
+        clicked_button(R.id.action_rv_list);
 
         return root;
     }
@@ -104,13 +112,14 @@ public class IngredientFragment extends Fragment implements if_RecycleViewOnClic
 
     @Override
     public void onItemClick(int position, String action) {
+        binding.tipCard.setVisibility(View.GONE);
         UserDao_indrigent userDao_indrigent = MainActivity.db_ig.userDao();
 
         if (if_mode == 2) {
             String name = _Einkaufsliste.get(position).getName();
             int type = _Einkaufsliste.get(position).getSortof();
             userDao_indrigent.deleteByName(name);
-            clickedAddbutton();
+            clicked_button(R.id.action_rv_list);
 
         }
 
@@ -118,6 +127,8 @@ public class IngredientFragment extends Fragment implements if_RecycleViewOnClic
 
     @Override
     public void onItemlongClick(int position, String action) {
+        binding.tipCard.setVisibility(View.GONE);
+
         if (if_mode == 1) {
 
             Toast.makeText(getContext(), "2", Toast.LENGTH_SHORT).show();
@@ -157,82 +168,63 @@ public class IngredientFragment extends Fragment implements if_RecycleViewOnClic
 
         Toast.makeText(getContext(), name + " = " + cat, Toast.LENGTH_SHORT).show();
 
-        clickedHomebutton();
+        clicked_button(R.id.action_rv_list);
     }
 
     @Override
-    public void clickedHomebutton() {
-        if_mode = 1;
-        Toast.makeText(getContext(), "4", Toast.LENGTH_SHORT).show();
-        List<Indrigent> il = MainActivity.get_Einkaufsliste();
-        List<DateModel> dl = MainActivity.get_RecipeDates_week();
-        HashMap rm = MainActivity.getRecipeMap();
-        List<Indrigent> iResult = new ArrayList<>();
+    public void clicked_button(int id) {
 
-        for (DateModel ditem : dl) {
-            RecipeModel r = (RecipeModel) rm.get(ditem.getModel());
-            if (r != null)
-                iResult.addAll(r.getINDRIGENTS());
+        List<DateModel> dl;
+        List<DateModel> Il;
+        List<Indrigent> iResult;
+
+        switch (id) {
+            case R.id.action_rv_list:
+                if_mode = 1;
+                Toast.makeText(getContext(), "4", Toast.LENGTH_SHORT).show();
+                List<Indrigent> il = MainActivity.get_Einkaufsliste();
+                dl = MainActivity.get_RecipeDates_week();
+                HashMap rm = MainActivity.getRecipeMap();
+                iResult = new ArrayList<>();
+
+                for (DateModel ditem : dl) {
+                    RecipeModel r = (RecipeModel) rm.get(ditem.getModel());
+                    if (r != null)
+                        iResult.addAll(r.getINDRIGENTS());
+                }
+                iResult.sort(Comparator.comparing(Indrigent::getName));
+
+                il.clear();
+                IndrigentParser ip = MainActivity.getIndrigentParser();
+                il.addAll(ip.outputList_db(iResult));
+                rva.notifyDataSetChanged();
+                lastView = null;
+                break;
+
+            case R.id.action_rv_listhandler:
+                if_mode = 2;
+
+                Toast.makeText(getContext(), "5", Toast.LENGTH_SHORT).show();
+                UserDao_indrigent userDao_indrigent = MainActivity.db_ig.userDao();
+
+                dl = MainActivity.get_RecipeDates_week();
+                il = MainActivity.get_Einkaufsliste();
+                iResult = new ArrayList<>();
+
+                il.clear();
+                List<IndrigentModel> rml = (ArrayList<IndrigentModel>) userDao_indrigent.getAll();
+
+                for (IndrigentModel item : rml) {
+                    il.add(new Indrigent(0f, "", item.getName_de(), item.getType()));
+                }
+                il.sort(Comparator.comparing(Indrigent::getName));
+                il.sort(Comparator.comparing(Indrigent::getSortof));
+
+
+                rva.notifyDataSetChanged();
+                lastView = null;
+
+                break;
         }
-        iResult.sort(Comparator.comparing(Indrigent::getName));
-
-        il.clear();
-        IndrigentParser ip = MainActivity.getIndrigentParser();
-        il.addAll(ip.outputList_db(iResult));
-        rva.notifyDataSetChanged();
-        lastView = null;
-    }
-
-    @Override
-    public void clickedAddbutton() {
-        if_mode = 2;
-
-        Toast.makeText(getContext(), "5", Toast.LENGTH_SHORT).show();
-        UserDao_indrigent userDao_indrigent = MainActivity.db_ig.userDao();
-
-        List<DateModel> dl = MainActivity.get_RecipeDates_week();
-        List<Indrigent> il = MainActivity.get_Einkaufsliste();
-        List<Indrigent> iResult = new ArrayList<>();
-
-        il.clear();
-        List<IndrigentModel> rml = (ArrayList<IndrigentModel>) userDao_indrigent.getAll();
-
-        for (IndrigentModel item : rml) {
-            il.add(new Indrigent(0f, "", item.getName_de(), item.getType()));
-        }
-        il.sort(Comparator.comparing(Indrigent::getName));
-        il.sort(Comparator.comparing(Indrigent::getSortof));
-
-
-        rva.notifyDataSetChanged();
-        lastView = null;
-
-    }
-
-    @Override
-    public void clickedFab1() {
-        Toast.makeText(getContext(), "6", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clickedFab2() {
-        Toast.makeText(getContext(), "7", Toast.LENGTH_SHORT).show();
-
-    }
-
-    @Override
-    public void clicked_m1_Button() {
-
-    }
-
-    @Override
-    public void clicked_m3_Button() {
-
-    }
-
-    @Override
-    public void clicked_m2_Button() {
-
     }
 }
