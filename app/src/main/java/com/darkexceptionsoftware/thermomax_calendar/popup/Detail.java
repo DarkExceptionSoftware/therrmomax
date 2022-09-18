@@ -77,6 +77,7 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         this.activityReference = this;

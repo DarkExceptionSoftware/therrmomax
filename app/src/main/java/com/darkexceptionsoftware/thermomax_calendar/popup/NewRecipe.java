@@ -1,5 +1,6 @@
 package com.darkexceptionsoftware.thermomax_calendar.popup;
 
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -11,27 +12,23 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.icu.util.Calendar;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.text.format.Time;
-import android.util.Log;
-import android.util.TypedValue;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
-import android.webkit.RenderProcessGoneDetail;
-import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -45,14 +42,17 @@ import androidx.exifinterface.media.ExifInterface;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.darkexceptionsoftware.thermomax_calendar.OnSwipeTouchListener;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.RecipeModel;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentEditrecipeBinding;
-import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentHomeBinding;
-import com.darkexceptionsoftware.thermomax_calendar.databinding.RcvRowRecipeDetailBinding;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
+
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -80,7 +81,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
     private int position;
     private boolean isediting = false;
     private Intent returnIntent = new Intent();
-
+    String url;
+    boolean hasscrapedata;
 
     private ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -129,6 +131,50 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         return rotatedImg;
     }
 
+    public void updateimage(String get_image_from, boolean save){
+        Glide
+                .with(this)
+                .asBitmap()
+                .load(get_image_from)
+                //.centerCrop()
+                .into(new CustomTarget<Bitmap>(600, 600) {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
+
+                        if (!local) {
+                            Boolean permission = false;
+                            if (ContextCompat.checkSelfPermission(
+                                    getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
+                                    PackageManager.PERMISSION_GRANTED) {
+                                // You can use the API that requires the permission.
+                                permission = true;
+                            } else {
+                                // You can directly ask for the permission.
+                                // The registered ActivityResultCallback gets the result of this request.
+                                //MainActivity.requestPermissionLauncher.launch(
+                                //       Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                            }
+
+                            String int_path = "";
+
+                            if (permission && save){
+                                int_path = saveImage(info.getId() + "", bitmap);   // save your bitmap
+                                info.setImagePath_internal(int_path);
+                            }
+                        }
+                        binding.nrFieldImage.setImageBitmap(bitmap);
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+
+                });
+    }
+
+
+private String html;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -142,6 +188,48 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         Intent intent = getIntent();
         if (intent != null) {
             action = intent.getStringExtra("action");
+
+
+            if (action.equals("parseany")) {
+                url = intent.getStringExtra("result");
+                html = intent.getStringExtra("html");
+
+                NewRecipe newRecipe = this;
+
+                new Thread() {
+                    @Override
+                    public void run() {
+                        Jsoup_parse jparse = null;
+
+                        try {
+                            jparse = new Jsoup_parse(activityReference);
+
+
+                            Document doc;
+                            doc = jparse.getResultDoc(url);
+
+                            hasscrapedata = true;
+                            Activity ref = NewRecipe.this;
+                            ref.runOnUiThread(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    newRecipe.onJsuopResult(doc);
+                                }
+                            });
+                            super.run();
+
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
+
+
+            }
+
+
             if (action.equals("edit")) {
 
 
@@ -154,6 +242,9 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 binding.nrFieldName.setText(info.getName());
 
                 boolean success = true;
+
+
+
                 String get_image_from;
                 local = false;
                 if (info.getImagePath_internal().equals("")) {
@@ -162,46 +253,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     get_image_from = info.getImagePath_internal();
                     local = true;
                 }
-                Glide
-                        .with(this)
-                        .asBitmap()
-                        .load(get_image_from)
-                        //.centerCrop()
-                        .into(new CustomTarget<Bitmap>(600, 600) {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
+                updateimage(get_image_from, true);
 
-                                if (!local) {
-                                    Boolean permission = false;
-                                    if (ContextCompat.checkSelfPermission(
-                                            getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                                            PackageManager.PERMISSION_GRANTED) {
-                                        // You can use the API that requires the permission.
-                                        permission = true;
-                                    } else {
-                                        // You can directly ask for the permission.
-                                        // The registered ActivityResultCallback gets the result of this request.
-                                        //MainActivity.requestPermissionLauncher.launch(
-                                        //       Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                                    }
-
-                                    String int_path = "";
-
-                                    if (permission)
-                                        int_path = saveImage(info.getId() + "", bitmap);   // save your bitmap
-
-                                    info.setImagePath_internal(int_path);
-                                    Log.d("Gilde", "DVIEW - RES - " + int_path);
-                                }
-                                binding.nrFieldImage.setImageBitmap(bitmap);
-                            }
-
-                            @Override
-                            public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                            }
-
-                        });
 
                 binding.nrFieldSummary.setText(info.getSummary());
 
@@ -258,6 +311,16 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         spinner.setAdapter(dataAdapter);
 
 
+        binding.nrButtonTowebview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                returnIntent = new Intent();
+                returnIntent.putExtra("action", "tobrowser");
+                returnIntent.putExtra("url", url);
+                setResult(Activity.RESULT_OK, returnIntent);
+                finish();
+            }
+        });
         binding.nrFieldImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -276,6 +339,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 return true;
             }
         });
+
 
         binding.nrButtonPreview.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -490,6 +554,107 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
     }
 
+
+    List ScrapedImgUrls = new ArrayList();
+    int ScrapedImgUrls_position = 0;
+    List ScrapedTables = new ArrayList();
+    int ScrapedTables_position = 0;
+    List ScrapedDiv = new ArrayList();
+    int ScrapedDiv_position = 0;
+
+    public void onJsuopResult(Document doc) {
+
+        String[] Titel = doc.title().split("\\|");
+
+        Elements images = doc.getElementsByTag("img");
+        Elements tables = doc.select("table"); //select the first table.
+        Elements dividers = doc.select("div.recipe--full__ingredients");
+        // ZUTATEN
+        for (Element div : dividers)
+            ScrapedDiv.add(div.toString().replace("&quot",""));
+
+        ScrapedDiv.sort(Comparator.comparingInt(String::length).reversed());
+
+
+        // NAME DES REZEPTS
+        binding.nrFieldName.setText(Titel[0]);
+
+        // NAME DES AUTORS
+        if (Titel.length > 1)
+            binding.nrFieldAutor.setText(Titel[1]);
+
+        // BILDER
+        for (Element image : images)
+            ScrapedImgUrls.add(image.attr("src"));
+
+        binding.nrFieldImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+
+            @SuppressLint("ClickableViewAccessibility")
+            public void onSwipeRight() {
+                ScrapedImgUrls_position -= 1;
+                if (ScrapedImgUrls_position < 0)
+                    ScrapedImgUrls_position = ScrapedImgUrls.size() -1;
+                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
+                Toast.makeText(getApplicationContext(),"(" + (ScrapedImgUrls_position + 1) + "/" +ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                ScrapedImgUrls_position ++;
+                if (ScrapedImgUrls_position >= ScrapedImgUrls.size())
+                    ScrapedImgUrls_position = 0;
+                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
+                Toast.makeText(getApplicationContext(),"(" + (ScrapedImgUrls_position + 1) + "/" +ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+
+        updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
+
+        // TABELLE
+        for (Element table : tables){
+            String tableresult = Jsoup_parse.TableResult(table);
+            ScrapedTables.add(tableresult);
+
+        }
+
+        binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+
+            @SuppressLint("ClickableViewAccessibility")
+            public void onSwipeRight() {
+                ScrapedTables_position -= 1;
+                if (ScrapedTables_position < 0)
+                    ScrapedTables_position = ScrapedTables.size() -1;
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+                Toast.makeText(getApplicationContext(),"(" + (ScrapedTables_position + 1) + "/" +ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                ScrapedTables_position ++;
+                if (ScrapedTables_position >= ScrapedTables.size())
+                    ScrapedTables_position = 0;
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+                Toast.makeText(getApplicationContext(),"(" + (ScrapedTables_position + 1) + "/" +ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+
+        binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+        binding.nrFieldZutaten.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.requestFocus();
+            }
+        });
+
+        binding.nrButtonTowebview.setVisibility(View.VISIBLE);
+
+    }
+
+
+
+
+
+
     public boolean delete(String _RecDir, String _filename) {
         boolean myFile = true;
         _filename += ".rcp";
@@ -516,7 +681,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         List<String> indrigents_untereinander = new ArrayList<>();
 
         String result = "";
-        String regex = "^([0-9]*[\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9]*)\\s?(.*)?";
+        String regex = "^([0-9]*[\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9/(),.]*)\\s?(.*)?";
         Pattern p = Pattern.compile(regex);
 
 

@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_rv_home"
         android:icon="@drawable/icon_home"
-        android:title="Chefkoch"
+        android:title="Home"
         app:showAsAction="always|withText" />
 
 </menu>

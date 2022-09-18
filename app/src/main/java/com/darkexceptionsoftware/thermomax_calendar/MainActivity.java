@@ -274,6 +274,7 @@ public class MainActivity extends AppCompatActivity {
 
         Menu menuNav;
 
+
         if (navigationView != null) {
             navigationView.setItemIconTintList(null);
 

@@ -89,12 +89,7 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
     }
 
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
-    {
-        inflater.inflate(R.menu.kochbuch_main, menu);
-        return;
-    }
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -176,7 +171,6 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
         stop = false;
         handler.postDelayed(runnable, 900);
 
-        ref.invalidateOptionsMenu();
 
 
         return root;
@@ -205,9 +199,16 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
                 intent = new Intent(activityReference, WebViewClass.class);
                 // TextView editText = (TextView) findViewById(R.id.confirm_label);
                 intent.putExtra("action", "findWeb");
-                intent.putExtra("url", "https:////www.chefkoch.de////");
+                intent.putExtra("url", "https:///www.chefkoch.de/");
                 startActivityForResult(intent, 1);
                 break;
+            case R.id.menu_recipe_3:
+                intent = new Intent(activityReference, WebViewClass.class);
+                intent.putExtra("action", "findWeb");
+                intent.putExtra("url", "file:///android_asset/index.html");
+                startActivityForResult(intent, 1);
+                break;
+
         }
     }
 
@@ -247,6 +248,27 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
                 h.postDelayed(r, 1000);
             }
 
+            if (action.equals("parseany")) {
+
+                url = extras.getString("result");
+                String html = extras.getString("html");
+
+                Intent intent;
+                intent = new Intent(activityReference, NewRecipe.class);
+                intent.putExtra("action", "parseany");
+                intent.putExtra("result",url);
+                intent.putExtra("html",html);
+                startActivityForResult(intent, 1);
+
+            }
+
+            if (action.equals("tobrowser")){
+
+                Intent intent = new Intent(activityReference, WebViewClass.class);
+                intent.putExtra("action", "findWeb");
+                intent.putExtra("url", extras.getString(url));
+                startActivityForResult(intent, 1);
+            }
             if (action.equals("findWeb")) {
 
                 url = extras.getString("result");

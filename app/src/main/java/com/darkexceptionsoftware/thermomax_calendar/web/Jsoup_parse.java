@@ -47,7 +47,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
     private String targetAdress = "";
     private String title = "";
     private TextView textView;
-
+    private int mode = 0;
     private long RecipeId = 0;
 
     public Jsoup_parse(Activity _activity) throws MalformedURLException, IOException {
@@ -64,6 +64,85 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
         } else {
             return string;
         }
+    }
+
+    public static List<Indrigent> getIndrigentsFromTable(String table) {
+
+        List<Indrigent> indrigentslist = new ArrayList<>();
+
+        table = table.replace(";;", ";");
+        String[] _table = table.split("#");
+        for (int i = 0; i < _table.length; i++) {
+
+            if (_table[i].length() < 4)
+                continue;
+
+            String _row = _table[i].trim();
+            if (_row.substring(_row.length() - 1).equals(";"))
+                _row = _row.substring(0, _row.length() - 1);
+
+            String[] row = _row.split(";");
+
+
+            Float amount = 0f;
+            String amountOf = "";
+            String name = "";
+
+            if (row[0].isEmpty()) {
+
+                if (row.length == 2) {
+                    name = row[1].trim();
+                }
+
+                if (row.length == 3) {
+                    amountOf = row[1].trim();
+                    name = row[2].trim();
+                }
+
+            } else {
+                row[0] = row[0].replace(",", ".");
+                try {
+                    amount = Float.parseFloat(row[0].trim());
+                } catch (Exception e) {
+                    Log.d("Jsoup_parse", "Cant parse \"" + row[0] + "\" to float");
+                    amount = 0f;
+                }
+
+                if (row.length == 2) {
+                    name = row[1].trim();
+                    amountOf = "x";
+                } else {
+                    amountOf = row[1].trim();
+                    name = row[2].trim();
+                }
+
+
+            }
+
+            Indrigent indrigent = new Indrigent();
+            indrigent.setAmount(amount);
+            indrigent.setAmountof(amountOf);
+            indrigent.setName(name);
+
+            Log.d("IND", amount.toString() + " - " + amountOf + " - " + name);
+
+            indrigentslist.add(indrigent);
+        }
+        return indrigentslist;
+    }
+
+    public int getMode() {
+        return mode;
+    }
+
+    public void setMode(int mode) {
+        /**
+         mode 0 for general parsing, mode 1 - ~ for explicit targets
+         @param int mode
+         @return a list of web-content if mode is 0 or a parsed string if there is a explicit target
+         @throws what kind of exception does this method throw
+         */
+        this.mode = mode;
     }
 
     public long getRecipeId() {
@@ -100,6 +179,10 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Document getResultDoc(String url) throws IOException {
+        return Jsoup.connect(url).get();
     }
 
     @Override
@@ -250,6 +333,51 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
     }
 
+    public static String TableResult(Element table) {
+        Elements rows = table.select("tr");
+        String regex = "^[0-9]{1,4}\\.?[0-9]{0,4}?[^@]{0,256}";
+        String result = "";
+
+        for (Element element : rows) {
+            Elements cols = element.select("td");
+
+            for (int q = 0; q < cols.size(); q++) {
+                String plainText = cols.get(q).toString(); // format that element to plain text
+
+                if (plainText.contains("<"))
+                    do {
+                        int start = plainText.indexOf("<");
+                        int end = plainText.indexOf(">") + 1;
+                        String r = plainText.substring(start, end);
+
+                        plainText = plainText.replace(r, "");
+
+                    } while (plainText.contains("<"));
+                plainText = plainText.replace("n. B.", "nB");
+
+                plainText = plainText.replace("½", "0.5");
+                plainText = plainText.replace("1/2", "0.5");
+
+                plainText = plainText.replace("¼", "0.25");
+                plainText = plainText.replace("1/4", "0.25");
+
+                plainText = plainText.replace("¾", "0.75");
+                plainText = plainText.replace("3/4", "0.75");
+
+                plainText = plainText.replaceAll( "  "," ");
+                plainText = plainText.trim();
+                if (q < cols.size() )
+                    plainText += " ";
+
+                result += plainText;
+
+
+            }
+            result = result.trim() + "\n";
+        }
+        return result;
+    }
+
     public void update(String value) {
 
         Thread thread = new Thread() {
@@ -279,7 +407,6 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
         thread.start();
     }
 
-    @Override
     protected void onPostExecute(String result) {
         // process results
         if (result.equals("")) {
@@ -307,7 +434,8 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
         // fab.setVisibility(View.VISIBLE);
     }
 
-    public void CreateRecipe(String _input) throws MalformedURLException, PackageManager.NameNotFoundException {
+    public void CreateRecipe(String _input) throws
+            MalformedURLException, PackageManager.NameNotFoundException {
 
         String[] _field = _input.split("\\|");
 
@@ -315,19 +443,18 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
         // Set image url
         String path = _field[_field.length - 1];
-        if (path.startsWith("http")){
+        if (path.startsWith("http")) {
             newRecipe.setImagePath(_field[_field.length - 1].trim());
-        }else{
+        } else {
             newRecipe.setImagePath("https://thumbs.dreamstime.com/z/karikatur-eines-kochs-der-k%C3%BCche-22282981.jpg");
             newRecipe.setImagePath_internal(path);
         }
 
 
-
-        if (RecipeId == 0){
+        if (RecipeId == 0) {
             // ID is time in seconds
             Calendar cal = Calendar.getInstance();
-            RecipeId = cal.getTimeInMillis() ;
+            RecipeId = cal.getTimeInMillis();
         }
 
         newRecipe.setId(RecipeId);
@@ -351,79 +478,6 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
         if (table.startsWith("http"))
             table = _field[2].replace("\n", "");
 
-
-        table = table.replace(";;", ";");
-        String[] _table = table.split("#");
-        for (int i = 0; i < _table.length; i++) {
-
-            if (_table[i].length() < 4)
-                continue;
-
-            String _row = _table[i].trim();
-            if (_row.substring(_row.length() - 1).equals(";"))
-                _row = _row.substring(0, _row.length() - 1);
-
-            String[] row = _row.split(";");
-
-
-            Float amount = 0f;
-            String amountOf = "";
-            String name = "";
-
-            if (row[0].isEmpty()) {
-
-                if (row.length == 2) {
-                    name = row[1].trim();
-                }
-
-                if (row.length == 3) {
-                    amountOf = row[1].trim();
-                    name = row[2].trim();
-                }
-
-            } else {
-                row[0] = row[0].replace(",", ".");
-                try{
-                    amount = Float.parseFloat(row[0].trim());
-                }catch (Exception e){
-                    Log.d("Jsoup_parse", "Cant parse \"" + row[0] +  "\" to float");
-                    amount = 0f;
-                }
-
-                if (row.length == 2) {
-                    name = row[1].trim();
-                    amountOf = "x";
-                } else {
-                    amountOf = row[1].trim();
-                    name = row[2].trim();
-                }
-
-
-            }
-
-            Indrigent indrigent = new Indrigent();
-            indrigent.setAmount(amount);
-            indrigent.setAmountof(amountOf);
-            indrigent.setName(name);
-
-            Log.d("IND", amount.toString() + " - " + amountOf + " - " + name);
-
-            indrigentslist.add(indrigent);
-        }
-
-
-        String RecDir = context.getApplicationInfo().dataDir + "/files/";
-        File file = new File(RecDir + +newRecipe.getId() + ".rcp");
-        if (file.exists())
-            file.delete();
-
-        newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
-
-    }
-
-    public static List<Indrigent> getIndrigentsFromTable(String table){
-
-        List<Indrigent> indrigentslist = new ArrayList<>();
 
         table = table.replace(";;", ";");
         String[] _table = table.split("#");
@@ -483,6 +537,14 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
             indrigentslist.add(indrigent);
         }
-        return indrigentslist;
+
+
+        String RecDir = context.getApplicationInfo().dataDir + "/files/";
+        File file = new File(RecDir + +newRecipe.getId() + ".rcp");
+        if (file.exists())
+            file.delete();
+
+        newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
+
     }
 }

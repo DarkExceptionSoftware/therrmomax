@@ -1,30 +1,34 @@
 package com.darkexceptionsoftware.thermomax_calendar.web;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputConnection;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.R;
+import com.darkexceptionsoftware.thermomax_calendar.databinding.PopupWebviewBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
@@ -33,14 +37,22 @@ import java.util.ArrayList;
 
 public class WebViewClass extends AppCompatActivity {
 
+    public String url = "about:blank";
     // region implements Class-Declarations
     private Activity activityReference;
+    private MainActivity ref;
+    private View root;
     private CustomWebView myWebView;
     private View Resultview;
     private Intent intent;
     // endregion implements Class-Declarations
-
+    private boolean stop = false;
+    private int blink = 0;
+    private Handler handler;
+    private Runnable runnable;
+    private PopupWebviewBinding binding;
     private Uri targeturi;
+
     // region implements Constructor
     public WebViewClass() {
     }
@@ -48,22 +60,41 @@ public class WebViewClass extends AppCompatActivity {
     public WebViewClass(Activity _activityReference) {
         this.activityReference = _activityReference;
     }
+    // endregion implements Constructor
+
+    // region implements Override
 
     public WebViewClass(Activity _activityReference, View _viewById) {
         this.activityReference = _activityReference;
         Resultview = _viewById;
     }
-    // endregion implements Constructor
 
-    // region implements Override
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+
+    // endregion implements Override
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         this.activityReference = this;
-        setContentView(R.layout.popup_webview);
+        binding = PopupWebviewBinding.inflate(getLayoutInflater());
+
         intent = getIntent();
+
+        if (intent != null)
+            url = intent.getStringExtra("url");
 
         // This callback will only be called when MyFragment is at least Started.
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
@@ -76,21 +107,55 @@ public class WebViewClass extends AppCompatActivity {
         this.getOnBackPressedDispatcher().addCallback(this, callback);
 
 
-        showWebViewWindow(this.findViewById(R.id.webviewwidget)
-        );
+        showWebViewWindow(binding.webviewwidget);
+
+        handler = new Handler();
+        runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (blink <= 0) {
+                    /* if (binding.tipWebhelp.getVisibility() == View.GONE)
+                        binding.tipWebhelp.setVisibility(View.VISIBLE); */
+                            // binding.tipWebhelp.animate().alpha(1.0f);
+                        } else {
+                            blink--;
+                        }}};
+        stop = false;
+
+        binding.webviewwidget.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                // binding.tipWebhelp.setVisibility(View.GONE);
+                //inding.tipWebhelp.animate().alpha(0.0f);
+
+                blink = 2;
+                return false;
+            }
+
+
+        });
+
+        //binding.tipWebhelp.setVisibility(View.VISIBLE);
+        handler.postDelayed(runnable, 1000);
+
+        View view = binding.getRoot();
+
+        setContentView(view);
+
+
+        activityReference
+                .getWindow()
+                        .
+
+                setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         clear_WebView(myWebView);
+        stop = true;
     }
-
-
-    // endregion implements Override
-
-
-
 
     public void showWebViewWindow(final View view) {
         //Create a View object yourself through inflater
@@ -109,8 +174,12 @@ public class WebViewClass extends AppCompatActivity {
         //final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
 
 
-        myWebView = findViewById(R.id.webviewwidget);
+        myWebView = binding.webviewwidget;
         clear_WebView(myWebView);
+
+
+        myWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");
+
 
         WebSettings webSettings = myWebView.getSettings();
 
@@ -123,14 +192,14 @@ public class WebViewClass extends AppCompatActivity {
         FloatingActionButton WebViewFab;
 
 
-        WebViewFab = findViewById(R.id.webview_fab);
+        WebViewFab = binding.webviewFab;
         WebViewFab.setOnClickListener(v -> {
 
             dismiss();
 
         });
 
-        WebViewFab = findViewById(R.id.webview_back);
+        WebViewFab = binding.webviewBack;
         WebViewFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -139,11 +208,15 @@ public class WebViewClass extends AppCompatActivity {
         });
 
 
+        FloatingActionButton finalWebViewFab = binding.webviewFab;
         myWebView.setWebViewClient(new MyWebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 final Uri uri = request.getUrl();
+                finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.ind_gewürz)));
+
                 return handleUri(uri);
+
             }
 
 
@@ -151,53 +224,50 @@ public class WebViewClass extends AppCompatActivity {
 
                 final String host = uri.getHost();
                 final String scheme = uri.getScheme();
-                FloatingActionButton fab;
 
-                // DO WE NEED A BACK BUTTON?
-                fab = findViewById(R.id.webview_back);
+                targeturi = uri;
+                Handler handler2 = new Handler();
+                Runnable runnable2 = new Runnable() {
+                    @Override
+                    public void run() {
+                        myWebView.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+                        html = MyJavaScriptInterface.getResult();
 
-                // DO WE HAVE A SCRAPEABLE LINK?
+                        finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary)));
 
-                fab = findViewById(R.id.webview_fab);
+                    }};
+                handler2.postDelayed(runnable2,2000);
+                return false;
+            }
 
-                if (uri.toString().contains("/rezepte/drucken/")) {
-                    fab.setImageDrawable(activityReference.getResources().getDrawable(R.drawable.ic_baseline_check_circle_outline_24, activityReference.getTheme()));
-                    targeturi = uri;
-                    fab.performClick();
-                    return true;
-                } else {
-                    fab.setImageDrawable(activityReference.getResources().getDrawable(R.drawable.ic_baseline_close_24, activityReference.getTheme()));
-                    return false;
-
-                }
-
+            @Override
+            public void onPageFinished(WebView view, String url) {
 
             }
         });
         apply_websettings(myWebView);
         // clearApplicationCache();
-        myWebView.loadUrl("https://www.chefkoch.de");
+        myWebView.loadUrl(url);
     }
 
-    private void dismiss(){
+    private String html;
+
+    private void dismiss() {
 
         String url = "about:blank";
 
-        if (targeturi != null){
-        url = targeturi.toString();
+        if (targeturi != null) {
+            url = targeturi.toString();
 
-        // WE HAVE A VALID URL AND THE USER WNATS OUT
-
-        if (!url.contains("/drucken/")) {
-            url = "about:blank";
-        }
         }
 
-        parseUrl(url);
+        // parseUrl(url);
 
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("action", "findWeb");
+        // returnIntent.putExtra("action", "findWeb");
+        returnIntent.putExtra("action", "parseany");
         returnIntent.putExtra("result", url);
+        returnIntent.putExtra("html", html);
         setResult(Activity.RESULT_OK, returnIntent);
 
 
@@ -206,8 +276,7 @@ public class WebViewClass extends AppCompatActivity {
 
     }
 
-    public void parseUrl(String url)
-    {
+    public void parseUrl(String url) {
         Jsoup_parse Jparse;
 
         try {
@@ -216,9 +285,8 @@ public class WebViewClass extends AppCompatActivity {
 
             String tvUrl = url;
 
-            String UrlRegEx = "http?s?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}/g";
             // https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)
-            UrlRegEx = "https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)";
+            String UrlRegEx = "https?:\\\\/\\\\/(www\\.)?[-a-zA-Z0-9@:%._\\\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\\\+.~#?&/=]*)";
 
             if (!tvUrl.contains("http")) {
                 tvUrl = "http://" + tvUrl;
@@ -226,8 +294,7 @@ public class WebViewClass extends AppCompatActivity {
 
             if (tvUrl.matches(UrlRegEx)) {
                 // Snackbar.make(view, "Trying to scrape...", Snackbar.LENGTH_LONG)
-                //        .setAction("Action", null).show();
-
+                //        .setAction("Action", null).show()
 
                 //Jparse.setTextView(binding.textUrl);
                 Jparse.setTargetAdress(url);
@@ -240,7 +307,6 @@ public class WebViewClass extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
 
     private void apply_websettings(WebView _w) {
 
@@ -316,14 +382,27 @@ public class WebViewClass extends AppCompatActivity {
         }
     }
 
-    public static void hideKeyboard(Activity activity) {
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        //Find the currently focused view, so we can grab the correct window token from it.
-        View view = activity.getCurrentFocus();
-        //If no view currently has focus, create a new one, just so we can grab a window token from it
-        if (view == null) {
-            view = new View(activity);
+    static class MyJavaScriptInterface {
+
+        private Context ctx;
+
+        public static String getResult() {
+            return result;
         }
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+        private static String result = "";
+
+        MyJavaScriptInterface(Context ctx) {
+            this.ctx = ctx;
+        }
+
+        @JavascriptInterface
+        public void showHTML(String html) {
+            /* new AlertDialog.Builder(ctx).setTitle("HTML").setMessage(html)
+                    .setPositiveButton(android.R.string.ok, null).setCancelable(false).create().show();
+                    */
+            result = html;
+        }
+
     }
 }

@@ -27,6 +27,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="32">
 
         <activity
@@ -47,7 +48,6 @@
         <activity
             android:name=".popup.ContextMenu_kochbuch"
             android:exported="false"
-
             android:label="@string/title_activity_confirm"
             android:launchMode="singleInstance"
             android:theme="@style/MyTransp" />
@@ -82,10 +82,11 @@
         <activity
             android:name=".web.WebViewClass"
             android:exported="false"
-
             android:label="@string/title_activity_webview"
             android:launchMode="singleInstance"
-            android:theme="@style/MyTransp" />
+            android:theme="@style/MyTransp"
+            android:windowSoftInputMode="adjustResize" />
+
 
         <activity
             android:name=".MainActivity"

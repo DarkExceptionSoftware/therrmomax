@@ -24,12 +24,15 @@
     Klicke LANGE auf eine Zutat, um sie einer Kategorie zuzuordnen.</string>
     <string name="auf">auf</string>
     <string name="zu">zu</string>
+
     <string name="nr_desc_image">Bild</string>
     <string name="nr_desc_name">Rezeptname</string>
+    <string name="nr_desc_autor">Urheber</string>
     <string name="nr_desc_indrigents">Zutatenliste</string>
     <string name="nr_desc_summary">Vorgehensweise</string>
     <string name="nr_desc_submit">Speichern</string>
     <string name="nr_desc_preview_on">Vorschau</string>
     <string name="nr_desc_preview_off">Nochmal bearbeiten</string>
+    <string name="nr_button_browserback"><![CDATA[<<< zurück zum Browser]]></string>
 
 </resources>
