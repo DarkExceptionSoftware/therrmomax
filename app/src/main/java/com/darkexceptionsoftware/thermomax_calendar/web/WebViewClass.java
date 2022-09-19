@@ -226,22 +226,16 @@ public class WebViewClass extends AppCompatActivity {
                 final String scheme = uri.getScheme();
 
                 targeturi = uri;
-                Handler handler2 = new Handler();
-                Runnable runnable2 = new Runnable() {
-                    @Override
-                    public void run() {
-                        myWebView.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
-                        html = MyJavaScriptInterface.getResult();
 
-                        finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary)));
-
-                    }};
-                handler2.postDelayed(runnable2,2000);
                 return false;
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
+                myWebView.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+                html = MyJavaScriptInterface.getResult();
+
+                finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary)));
 
             }
         });

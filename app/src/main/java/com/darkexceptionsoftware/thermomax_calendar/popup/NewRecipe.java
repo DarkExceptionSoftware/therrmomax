@@ -84,6 +84,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
     String url;
     boolean hasscrapedata;
 
+    private Document doc, doc_stripped;
+
     private ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -205,8 +207,8 @@ private String html;
                             jparse = new Jsoup_parse(activityReference);
 
 
-                            Document doc;
                             doc = jparse.getResultDoc(url);
+                            doc_stripped = jparse.fromhtml(html);
 
                             hasscrapedata = true;
                             Activity ref = NewRecipe.this;
@@ -564,12 +566,22 @@ private String html;
 
     public void onJsuopResult(Document doc) {
 
+        String BaseUrl = url.replace("/(http(s)?:\\/\\/)|(\\/.*){1}/g", "");
+
         String[] Titel = doc.title().split("\\|");
+        Elements Pages = doc.select("p");
+        String summary = "";
 
         Elements images = doc.getElementsByTag("img");
         Elements tables = doc.select("table"); //select the first table.
         Elements dividers = doc.select("div.recipe--full__ingredients");
-        // ZUTATEN
+
+        for (Element Page : Pages)
+            summary += Page.text() +"\n\n --- \n\n";
+
+        binding.nrFieldSummary.setText(summary);
+
+            // ZUTATEN
         for (Element div : dividers)
             ScrapedDiv.add(div.toString().replace("&quot",""));
 
@@ -586,6 +598,9 @@ private String html;
         // BILDER
         for (Element image : images)
             ScrapedImgUrls.add(image.attr("src"));
+
+        ScrapedImgUrls.add("");
+
 
         binding.nrFieldImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
 
@@ -616,6 +631,7 @@ private String html;
             ScrapedTables.add(tableresult);
 
         }
+        ScrapedTables.add("");
 
         binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
 

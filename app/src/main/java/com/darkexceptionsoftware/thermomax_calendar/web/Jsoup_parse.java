@@ -184,7 +184,9 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
     public Document getResultDoc(String url) throws IOException {
         return Jsoup.connect(url).get();
     }
-
+    public Document fromhtml(String url) throws IOException {
+        return Jsoup.parse(url);
+    }
     @Override
     protected void onPreExecute() {
         //  textView.setText("Loading...");
