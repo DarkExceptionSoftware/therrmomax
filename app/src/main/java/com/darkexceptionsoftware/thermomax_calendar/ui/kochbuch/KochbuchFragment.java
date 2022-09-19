@@ -263,10 +263,11 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
             }
 
             if (action.equals("tobrowser")){
+                url = extras.getString("url");
 
                 Intent intent = new Intent(activityReference, WebViewClass.class);
                 intent.putExtra("action", "findWeb");
-                intent.putExtra("url", extras.getString(url));
+                intent.putExtra("url", url);
                 startActivityForResult(intent, 1);
             }
             if (action.equals("findWeb")) {

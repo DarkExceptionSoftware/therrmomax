@@ -42,6 +42,7 @@ import androidx.exifinterface.media.ExifInterface;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.OnSwipeTouchListener;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
@@ -50,14 +51,21 @@ import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentEditrecipeBinding;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
 
+import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -133,7 +141,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         return rotatedImg;
     }
 
-    public void updateimage(String get_image_from, boolean save){
+    public void updateimage(String get_image_from, boolean save) {
         Glide
                 .with(this)
                 .asBitmap()
@@ -159,7 +167,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
                             String int_path = "";
 
-                            if (permission && save){
+                            if (permission && save) {
                                 int_path = saveImage(info.getId() + "", bitmap);   // save your bitmap
                                 info.setImagePath_internal(int_path);
                             }
@@ -176,7 +184,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
     }
 
 
-private String html;
+    private String html = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -194,7 +203,32 @@ private String html;
 
             if (action.equals("parseany")) {
                 url = intent.getStringExtra("result");
-                html = intent.getStringExtra("html");
+
+                StringBuilder text = new StringBuilder();
+                File file = new File(getApplication().getFilesDir(), "htmltenp.txt");
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(file));
+                    String line;
+
+                    while ((line = br.readLine()) != null) {
+                        text.append(line);
+                        text.append('\n');
+                    }
+                    br.close();
+
+                    html = text.toString();
+                } catch (IOException e) {
+                    html = e.toString();
+                }
+
+                int found = html.indexOf("recipeIngredient");
+                if (found != -1){
+                    html = html.substring(found,html.length());
+                    html = html.substring(html.indexOf("[") + 1,html.indexOf("]"));
+                    html = html.replace("\",\"","\n").replace("\"","");
+                }else
+                    html = "Parsing failed!";
+
 
                 NewRecipe newRecipe = this;
 
@@ -208,6 +242,8 @@ private String html;
 
 
                             doc = jparse.getResultDoc(url);
+
+
                             doc_stripped = jparse.fromhtml(html);
 
                             hasscrapedata = true;
@@ -216,7 +252,7 @@ private String html;
 
                                 @Override
                                 public void run() {
-                                    newRecipe.onJsuopResult(doc);
+                                    newRecipe.onJsuopResult();
                                 }
                             });
                             super.run();
@@ -244,7 +280,6 @@ private String html;
                 binding.nrFieldName.setText(info.getName());
 
                 boolean success = true;
-
 
 
                 String get_image_from;
@@ -556,6 +591,19 @@ private String html;
 
     }
 
+    public static String getBaseUrl(String urlString) {
+
+        if (urlString == null) {
+            return null;
+        }
+
+        try {
+            URL url = URI.create(urlString).toURL();
+            return url.getProtocol() + "://" + url.getAuthority() + "/";
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     List ScrapedImgUrls = new ArrayList();
     int ScrapedImgUrls_position = 0;
@@ -564,9 +612,10 @@ private String html;
     List ScrapedDiv = new ArrayList();
     int ScrapedDiv_position = 0;
 
-    public void onJsuopResult(Document doc) {
+    public void onJsuopResult() {
 
-        String BaseUrl = url.replace("/(http(s)?:\\/\\/)|(\\/.*){1}/g", "");
+
+        String BaseUrl = getBaseUrl(url);
 
         String[] Titel = doc.title().split("\\|");
         Elements Pages = doc.select("p");
@@ -576,14 +625,10 @@ private String html;
         Elements tables = doc.select("table"); //select the first table.
         Elements dividers = doc.select("div.recipe--full__ingredients");
 
-        for (Element Page : Pages)
-            summary += Page.text() +"\n\n --- \n\n";
 
-        binding.nrFieldSummary.setText(summary);
-
-            // ZUTATEN
+        // ZUTATEN
         for (Element div : dividers)
-            ScrapedDiv.add(div.toString().replace("&quot",""));
+            ScrapedDiv.add(div.toString().replace("&quot", ""));
 
         ScrapedDiv.sort(Comparator.comparingInt(String::length).reversed());
 
@@ -596,8 +641,15 @@ private String html;
             binding.nrFieldAutor.setText(Titel[1]);
 
         // BILDER
-        for (Element image : images)
-            ScrapedImgUrls.add(image.attr("src"));
+        for (Element image : images) {
+
+            String ImageUrl = image.attr("src");
+
+            if (ImageUrl.startsWith("/"))
+                ImageUrl = BaseUrl + ImageUrl;
+
+            ScrapedImgUrls.add(ImageUrl);
+        }
 
         ScrapedImgUrls.add("");
 
@@ -608,16 +660,17 @@ private String html;
             public void onSwipeRight() {
                 ScrapedImgUrls_position -= 1;
                 if (ScrapedImgUrls_position < 0)
-                    ScrapedImgUrls_position = ScrapedImgUrls.size() -1;
+                    ScrapedImgUrls_position = ScrapedImgUrls.size() - 1;
                 updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
-                Toast.makeText(getApplicationContext(),"(" + (ScrapedImgUrls_position + 1) + "/" +ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
             }
+
             public void onSwipeLeft() {
-                ScrapedImgUrls_position ++;
+                ScrapedImgUrls_position++;
                 if (ScrapedImgUrls_position >= ScrapedImgUrls.size())
                     ScrapedImgUrls_position = 0;
                 updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
-                Toast.makeText(getApplicationContext(),"(" + (ScrapedImgUrls_position + 1) + "/" +ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
             }
 
 
@@ -626,11 +679,13 @@ private String html;
         updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
 
         // TABELLE
-        for (Element table : tables){
+        for (Element table : tables) {
             String tableresult = Jsoup_parse.TableResult(table);
             ScrapedTables.add(tableresult);
 
         }
+        ScrapedTables.add(html);
+
         ScrapedTables.add("");
 
         binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
@@ -639,16 +694,17 @@ private String html;
             public void onSwipeRight() {
                 ScrapedTables_position -= 1;
                 if (ScrapedTables_position < 0)
-                    ScrapedTables_position = ScrapedTables.size() -1;
+                    ScrapedTables_position = ScrapedTables.size() - 1;
                 binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(),"(" + (ScrapedTables_position + 1) + "/" +ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
             }
+
             public void onSwipeLeft() {
-                ScrapedTables_position ++;
+                ScrapedTables_position++;
                 if (ScrapedTables_position >= ScrapedTables.size())
                     ScrapedTables_position = 0;
                 binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(),"(" + (ScrapedTables_position + 1) + "/" +ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
             }
 
 
@@ -662,13 +718,17 @@ private String html;
             }
         });
 
+
+        // Summary
+
+        for (Element Page : Pages)
+            summary += Page.text() + "\n\n --- \n\n";
+
+        binding.nrFieldSummary.setText(summary);
+
         binding.nrButtonTowebview.setVisibility(View.VISIBLE);
 
     }
-
-
-
-
 
 
     public boolean delete(String _RecDir, String _filename) {

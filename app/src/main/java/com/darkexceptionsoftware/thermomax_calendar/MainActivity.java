@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Menu;
+import android.webkit.WebBackForwardList;
 
 import com.darkexceptionsoftware.thermomax_calendar.data.AppDatabase;
 import com.darkexceptionsoftware.thermomax_calendar.data.AppDatabase_indrigent;
@@ -26,6 +27,7 @@ import com.darkexceptionsoftware.thermomax_calendar.data.UserDao_indrigent;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
 import com.darkexceptionsoftware.thermomax_calendar.data.if_action_bar_access;
 import com.darkexceptionsoftware.thermomax_calendar.data.fetch_recipes;
+import com.darkexceptionsoftware.thermomax_calendar.web.CustomWebView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
@@ -79,6 +81,19 @@ public class MainActivity extends AppCompatActivity {
     private static Toolbar toolbar;
     public List<String> old_files;
     public static Activity ref;
+
+
+    public String getMyHtml() {
+        return myHtml;
+    }
+
+    public void setMyHtml(String myHtml) {
+        this.myHtml = myHtml;
+    }
+
+    private String myHtml = "";
+
+
 
     public static int getmMainLayout() {
         return mMainLayout;

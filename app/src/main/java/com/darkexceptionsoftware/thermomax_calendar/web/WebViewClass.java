@@ -15,6 +15,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebBackForwardList;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -31,9 +32,15 @@ import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.PopupWebviewBinding;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class WebViewClass extends AppCompatActivity {
 
@@ -42,8 +49,9 @@ public class WebViewClass extends AppCompatActivity {
     private Activity activityReference;
     private MainActivity ref;
     private View root;
-    private CustomWebView myWebView;
     private View Resultview;
+    private CustomWebView myWebView;
+
     private Intent intent;
     // endregion implements Class-Declarations
     private boolean stop = false;
@@ -59,6 +67,8 @@ public class WebViewClass extends AppCompatActivity {
 
     public WebViewClass(Activity _activityReference) {
         this.activityReference = _activityReference;
+        ref = (MainActivity) activityReference;
+
     }
     // endregion implements Constructor
 
@@ -67,6 +77,8 @@ public class WebViewClass extends AppCompatActivity {
     public WebViewClass(Activity _activityReference, View _viewById) {
         this.activityReference = _activityReference;
         Resultview = _viewById;
+        ref = (MainActivity) activityReference;
+
     }
 
     public static void hideKeyboard(Activity activity) {
@@ -88,10 +100,10 @@ public class WebViewClass extends AppCompatActivity {
 
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        this.activityReference = this;
         binding = PopupWebviewBinding.inflate(getLayoutInflater());
 
         intent = getIntent();
+
 
         if (intent != null)
             url = intent.getStringExtra("url");
@@ -111,15 +123,17 @@ public class WebViewClass extends AppCompatActivity {
 
         handler = new Handler();
         runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        if (blink <= 0) {
+            @Override
+            public void run() {
+                if (blink <= 0) {
                     /* if (binding.tipWebhelp.getVisibility() == View.GONE)
                         binding.tipWebhelp.setVisibility(View.VISIBLE); */
-                            // binding.tipWebhelp.animate().alpha(1.0f);
-                        } else {
-                            blink--;
-                        }}};
+                    // binding.tipWebhelp.animate().alpha(1.0f);
+                } else {
+                    blink--;
+                }
+            }
+        };
         stop = false;
 
         binding.webviewwidget.setOnTouchListener(new View.OnTouchListener() {
@@ -143,19 +157,13 @@ public class WebViewClass extends AppCompatActivity {
         setContentView(view);
 
 
-        activityReference
+        this
                 .getWindow()
                         .
 
                 setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        clear_WebView(myWebView);
-        stop = true;
-    }
 
     public void showWebViewWindow(final View view) {
         //Create a View object yourself through inflater
@@ -175,10 +183,8 @@ public class WebViewClass extends AppCompatActivity {
 
 
         myWebView = binding.webviewwidget;
+
         clear_WebView(myWebView);
-
-
-        myWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");
 
 
         WebSettings webSettings = myWebView.getSettings();
@@ -193,11 +199,27 @@ public class WebViewClass extends AppCompatActivity {
 
 
         WebViewFab = binding.webviewFab;
+        FloatingActionButton finalWebViewFab1 = WebViewFab;
         WebViewFab.setOnClickListener(v -> {
 
-            dismiss();
+            if (scrape == 0) {
+                myWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");
+                scrape = 1;
+                myWebView.loadUrl(targeturi.toString());
+                finalWebViewFab1.setVisibility(View.GONE);
+
+            } else if (scrape == 2) {
+                scrape = 3;
+                finalWebViewFab1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.colorPrimaryDark)));
+
+            } else if (scrape == 3) {
+                html = MyJavaScriptInterface.getResult();
+
+                dismiss();
+            }
 
         });
+
 
         WebViewFab = binding.webviewBack;
         WebViewFab.setOnClickListener(new View.OnClickListener() {
@@ -213,7 +235,6 @@ public class WebViewClass extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 final Uri uri = request.getUrl();
-                finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.ind_gewürz)));
 
                 return handleUri(uri);
 
@@ -224,6 +245,8 @@ public class WebViewClass extends AppCompatActivity {
 
                 final String host = uri.getHost();
                 final String scheme = uri.getScheme();
+                finalWebViewFab1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ind_gewürz)));
+                finalWebViewFab1.setVisibility(View.GONE);
 
                 targeturi = uri;
 
@@ -232,23 +255,29 @@ public class WebViewClass extends AppCompatActivity {
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                myWebView.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
-                html = MyJavaScriptInterface.getResult();
 
-                finalWebViewFab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary)));
+                if (scrape == 1) {
+                    scrape = 2;
+                    myWebView.loadUrl("javascript:window.HtmlViewer.showHTML('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>');");
+                    finalWebViewFab1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.cardview_today)));
+                }
+                finalWebViewFab1.setVisibility(View.VISIBLE);
+
 
             }
         });
         apply_websettings(myWebView);
         // clearApplicationCache();
+
         myWebView.loadUrl(url);
+
     }
 
     private String html;
+    int scrape = 0;
 
     private void dismiss() {
 
-        String url = "about:blank";
 
         if (targeturi != null) {
             url = targeturi.toString();
@@ -261,13 +290,43 @@ public class WebViewClass extends AppCompatActivity {
         // returnIntent.putExtra("action", "findWeb");
         returnIntent.putExtra("action", "parseany");
         returnIntent.putExtra("result", url);
-        returnIntent.putExtra("html", html);
+        //returnIntent.putExtra("html", html);
         setResult(Activity.RESULT_OK, returnIntent);
 
+        String file = getApplication().getFilesDir() + "/htmltenp.txt";
 
+        FileWriter fw = null;
+
+        try {
+            FileWriter fileWriter= new FileWriter(file);
+
+            BufferedWriter out = new BufferedWriter(fileWriter);
+
+            out.write(html);
+
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        clearApplicationCache();
         clear_WebView(myWebView);
-        finish();
+        this.finish();
 
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        myWebView.clearCache(true);
+        myWebView.clearHistory();
+        myWebView.onPause();
+        myWebView.removeAllViews();
+        myWebView.destroyDrawingCache();
+        myWebView.pauseTimers();
+        myWebView = null;
+        binding = null;
     }
 
     public void parseUrl(String url) {
@@ -304,7 +363,7 @@ public class WebViewClass extends AppCompatActivity {
 
     private void apply_websettings(WebView _w) {
 
-        String webviewDBPath = activityReference.getFilesDir().getParent() + "/";  // getFilesDir().getParent() returns base path of app private data
+        String webviewDBPath = this.getFilesDir().getParent() + "/";  // getFilesDir().getParent() returns base path of app private data
         WebSettings _ws = _w.getSettings();
         _ws.setDatabaseEnabled(true);
         _ws.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -330,14 +389,14 @@ public class WebViewClass extends AppCompatActivity {
     }
 
     public void clear_WebView(WebView _webview) {
-        _webview.loadUrl("");
+        _webview.loadUrl("about:blank");
         _webview.clearHistory();
         _webview.clearFormData();
         _webview.clearCache(true);
     }
 
     private void clearApplicationCache() {
-        File dir = activityReference.getCacheDir();
+        File dir = getApplicationContext().getCacheDir();
 
         if (dir != null && dir.isDirectory()) {
             try {
@@ -399,4 +458,7 @@ public class WebViewClass extends AppCompatActivity {
         }
 
     }
+
+
 }
+
