@@ -70,7 +70,7 @@ public class Jsoup_parse extends AsyncTask<String, Void, String> {
 
         List<Indrigent> indrigentslist = new ArrayList<>();
 
-        table = table.replace(";;", ";");
+        // table = table.replace(";;", ";");
         String[] _table = table.split("#");
         for (int i = 0; i < _table.length; i++) {
 

@@ -116,18 +116,18 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
 
             long id = info.getId();
 
-            String ar = "</p>";
-            String _ar = "<p style=text-align:right>";
-            String _al = "<p style=text-align:left>";
-            String builder = "";
-            String builder2 = "";
-            builder2 = "<table>";
-            builder2 += "<tr>";
-            builder2 += "<th style=\"width: 100px\">" + _ar + "Menge" + ar + "</th>";
-            // builder2 +="<th>Art</th>";
-            builder2 += "<th>" + _al + "Zutat" + ar + "</th>";
-            builder2 += "</tr>";
-
+            String builder2 = "<!DOCTYPE html>\n" +
+                    "<html><head>\n" +
+                    "<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n" +
+                    "<title>Ohne_Titel_1</title>\n" +
+                    "<link href=\"file:///android_asset/table_style.css\" rel=\"stylesheet\">" +
+                    "</head><body>\n" +
+                    "<table class=\"content-table\">\n" +
+                    "<thead>" +
+                    "<tr>" +
+                    "<th><h2>Mg.</h2></th>" +
+                    "<th><h2>Eh.</h2></th>" +
+                    "<th><h2>Zutat</h2></th></tr></thead>";
 
             for (Indrigent item : info.getINDRIGENTS()) {
                 builder2 += "<tr>";
@@ -135,18 +135,19 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
                 String _t = item.getAmount().toString();
 
                 if (_t.equals("0.0")) {
-                    _t = "";
+                    _t = "1";
 
                 } else {
                     _t = _t.replace(".0", "");
 
                 }
-                builder2 += "<td valign=\"top\" style=\"height: 30px\">" + _ar + "<strong>" + _t + " " + item.getAmountof() + "</strong>" + ar + "</td>";
+                builder2 += "<td>"+_t +"</td>";
+                builder2 += "<td>"+item.getAmountof() +"</td>";
+                builder2 += "<td>"+item.getName() +"</td>";
 
-                builder2 += "<td valign=\"top\"><strong>" + item.getName() + "</strong></td>";
                 builder2 += "</tr>";
             }
-            builder2 += "</table>";
+            builder2 += "</table></body></html>";
             final String mimeType = "text/html";
             final String encoding = "UTF-8";
             rv_rcp_webview.loadDataWithBaseURL("", builder2, mimeType, encoding, "");
@@ -157,7 +158,7 @@ public class Detail extends AppCompatActivity implements View.OnTouchListener, V
             rezept = rezept.replace(". ", ". \n\n");
             rezept = rezept.replace("_", " ");
 
-            rv_rcp_d_rcp.setText(info.getImagePath() + "\n\n" + rezept + "\n\n\n");
+            rv_rcp_d_rcp.setText(info.getUrl() + "\n\n" + rezept + "\n\n\n");
 
 
             try {

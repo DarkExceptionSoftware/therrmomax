@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -76,6 +77,16 @@ import java.util.regex.Pattern;
 public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, View.OnTouchListener, ViewTreeObserver.OnScrollChangedListener {
     boolean previewmode = false;
     int previousSpinnerState = 0;
+    String url;
+    boolean hasscrapedata;
+    List<String> ScrapedImgUrls = new ArrayList<String>();
+    int ScrapedImgUrls_position = 0;
+    List<String> ScrapedTables = new ArrayList<String>();
+    int ScrapedTables_position = 0;
+    List<String> ScrapedDiv = new ArrayList<String>();
+    int ScrapedDiv_position = 0;
+    List<String> ScrapedSummary = new ArrayList<String>();
+    int ScrapedSummary_position = 0;
     private Activity activityReference;
     private ScrollView mScrollView;
     private FragmentEditrecipeBinding binding;
@@ -89,24 +100,12 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
     private int position;
     private boolean isediting = false;
     private Intent returnIntent = new Intent();
-    String url;
-    boolean hasscrapedata;
-
     private Document doc, doc_stripped;
-
     private ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
-                } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
-                }
+
             });
+    private String html = "";
 
     public NewRecipe() {
     }
@@ -139,6 +138,35 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
         img.recycle();
         return rotatedImg;
+    }
+
+    public static String getBaseUrl(String urlString) {
+
+        if (urlString == null) {
+            return null;
+        }
+
+        try {
+            URL url = URI.create(urlString).toURL();
+            return url.getProtocol() + "://" + url.getAuthority() + "/";
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+
+        if (imm.isAcceptingText())
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+
     }
 
     public void updateimage(String get_image_from, boolean save) {
@@ -183,9 +211,6 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 });
     }
 
-
-    private String html = "";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -194,7 +219,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         binding = FragmentEditrecipeBinding.inflate(getLayoutInflater());
 
         String action;
-        List<Indrigent> indrigents;
+        _indrigents = new ArrayList<>();
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -221,29 +246,17 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     html = e.toString();
                 }
 
-                int found = html.indexOf("recipeIngredient");
-                if (found != -1){
-                    html = html.substring(found,html.length());
-                    html = html.substring(html.indexOf("[") + 1,html.indexOf("]"));
-                    html = html.replace("\",\"","\n").replace("\"","");
-                }else
-                    html = "Parsing failed!";
-
 
                 NewRecipe newRecipe = this;
 
-                new Thread() {
-                    @Override
+                thread = new Thread() {
                     public void run() {
                         Jsoup_parse jparse = null;
 
                         try {
                             jparse = new Jsoup_parse(activityReference);
 
-
                             doc = jparse.getResultDoc(url);
-
-
                             doc_stripped = jparse.fromhtml(html);
 
                             hasscrapedata = true;
@@ -262,9 +275,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                             e.printStackTrace();
                         }
                     }
-                }.start();
-
-
+                };
+                thread.start();
             }
 
 
@@ -275,9 +287,11 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 info = intent.getParcelableExtra("info");
                 position = intent.getIntExtra("pos", -1);
 
-                indrigents = info.getINDRIGENTS();
+                _indrigents = info.getINDRIGENTS();
 
+                url = info.getUrl();
                 binding.nrFieldName.setText(info.getName());
+                binding.nrFieldAutor.setText(info.getCreator());
 
                 boolean success = true;
 
@@ -311,7 +325,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             action = intent.getStringExtra("action");
             if (action.equals("editRecipe")) {
                 info = intent.getParcelableExtra("info");
-                indrigents = info.getINDRIGENTS();
+                _indrigents = info.getINDRIGENTS();
             }
 
 
@@ -383,6 +397,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             public void onClick(View view) {
                 if (previewmode) {
                     previewmode = false;
+
                     binding.nrWebview.setVisibility(View.GONE);
                     binding.nrFieldZutaten.setVisibility(View.VISIBLE);
                     binding.switch1.setVisibility(View.VISIBLE);
@@ -402,19 +417,21 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     binding.nrButtonSubmit.setVisibility(View.VISIBLE);
 
 
-                    String toArray = result_from_field();
-                    _indrigents = Jsoup_parse.getIndrigentsFromTable(toArray);
-                    String ar = "</p>";
-                    String _ar = "<p style=text-align:right>";
-                    String _al = "<p style=text-align:left>";
-                    String builder = "";
-                    String builder2 = "";
-                    builder2 = "<table>";
-                    builder2 += "<tr>";
-                    builder2 += "<th style=\"width: 100px\">" + _ar + "Menge" + ar + "</th>";
-                    // builder2 +="<th>Art</th>";
-                    builder2 += "<th>" + _al + "Zutat" + ar + "</th>";
-                    builder2 += "</tr>";
+                    result_from_field();
+
+
+                    String builder2 = "<!DOCTYPE html>\n" +
+                            "<html><head>\n" +
+                            "<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n" +
+                            "<title>Ohne_Titel_1</title>\n" +
+                            "<link href=\"file:///android_asset/table_style.css\" rel=\"stylesheet\">" +
+                            "</head><body>\n" +
+                            "<table class=\"content-table\">\n" +
+                            "<thead>" +
+                            "<tr>" +
+                            "<th><h2>Mg.</h2></th>" +
+                            "<th><h2>Eh.</h2></th>" +
+                            "<th><h2>Zutat</h2></th></tr></thead>";
 
 
                     for (Indrigent item : _indrigents) {
@@ -423,18 +440,19 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                         String _t = item.getAmount().toString();
 
                         if (_t.equals("0.0")) {
-                            _t = "";
+                            _t = "1";
 
                         } else {
                             _t = _t.replace(".0", "");
 
                         }
-                        builder2 += "<td valign=\"top\" style=\"height: 30px\">" + _ar + "<strong>" + _t + " " + item.getAmountof() + "</strong>" + ar + "</td>";
+                        builder2 += "<td>" + _t + "</td>";
+                        builder2 += "<td>" + item.getAmountof() + "</td>";
+                        builder2 += "<td>" + item.getName() + "</td>";
 
-                        builder2 += "<td valign=\"top\"><strong>" + item.getName() + "</strong></td>";
                         builder2 += "</tr>";
                     }
-                    builder2 += "</table>";
+                    builder2 += "</table></body></html>";
                     final String mimeType = "text/html";
                     final String encoding = "UTF-8";
                     binding.nrWebview.loadDataWithBaseURL("", builder2, mimeType, encoding, "");
@@ -449,78 +467,10 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             @Override
             public void onClick(View view) {
                 try {
-                    Jsoup_parse Jparse = new Jsoup_parse(activityReference);
 
                     String name = binding.nrFieldName.getText().toString();
-                    String Creator = "you";
+                    String Creator = binding.nrFieldAutor.getText().toString();
                     String summary = binding.nrFieldSummary.getText().toString();
-                    String indrigents = binding.nrFieldZutaten.getText().toString().replaceAll("[|;#]", "").trim();
-                    ;
-                    List<String> indrigentslist = Arrays.asList(indrigents.split("\n"));
-
-                    List<String> indrigents_untereinander = new ArrayList<>();
-
-                    String result = "";
-                    String regex = "^([0-9]*[\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9]*)\\s?(.*)?";
-                    Pattern p = Pattern.compile(regex);
-
-
-                    if (untereinander) {
-                        int step = Integer.parseInt(binding.spinner.getSelectedItem().toString());
-
-                        List<String> indrigents_prepare = new ArrayList<>();
-
-                        for (String t : indrigentslist) {
-                            if (!t.equals(""))
-                                indrigents_prepare.add(t);
-                        }
-
-                        for (int i = 0; i < indrigents_prepare.size() - step + 1; i += step) {
-
-                            String sumline = indrigents_prepare.get(i);
-
-                            for (int k = 1; k < step; k++)
-                                sumline += " " + indrigents_prepare.get(i + k);
-
-                            indrigents_untereinander.add(sumline);
-                        }
-
-                        indrigentslist = indrigents_untereinander;
-
-                    }
-
-                    for (String _item : indrigentslist) {
-                        if (_item.equals(""))
-                            continue;
-
-                        List<String> allMatches = new ArrayList<String>();
-
-                        if (_item.toString().matches(regex)) {
-                            Matcher m = p.matcher(_item);
-
-
-                            if (m.find()) {
-
-                                allMatches.add(m.group(1));
-                                allMatches.add(m.group(2));
-                                allMatches.add(m.group(3));
-
-
-                                if (allMatches.get(allMatches.size() - 1).equals("")) {
-                                    allMatches.set(allMatches.size() - 1, allMatches.get(allMatches.size() - 2));
-                                    allMatches.set(allMatches.size() - 2, "");
-
-                                }
-
-                                result += allMatches.get(0) + ";";
-                                result += allMatches.get(1) + ";";
-                                result += allMatches.get(2) + "#";
-                            }
-                        }
-                    }
-
-                    // binding.nrFieldZutaten.setText(result);
-                    Jparse.setReturnReference(activityReference);
 
                     if (recipeid == 0) {
                         Time time = new Time();
@@ -528,15 +478,26 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                         recipeid = time.toMillis(false);
                     }
 
-
                     Bitmap bm = ((BitmapDrawable) binding.nrFieldImage.getDrawable()).getBitmap();
                     String ImagePath = saveImage(recipeid + "", bm);
-                    // Jparse.setRecipeId(recipeid);
 
                     String RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
                     delete(RecDir, recipeid + "");
 
-                    Jparse.CreateRecipe(name + "|" + Creator + "|" + summary + "|" + result + "|" + ImagePath);
+                    RecipeModel newRecipe = new RecipeModel(getApplicationContext());
+                    newRecipe.setId(recipeid);
+                    newRecipe.setName(name);
+                    newRecipe.setCreator(Creator);
+
+                    newRecipe.setImagePath(ImagePath);
+                    newRecipe.setImagePath_internal(ImagePath);
+
+                    newRecipe.setINDRIGENTS(_indrigents);
+                    newRecipe.setSummary(summary);
+                    newRecipe.setUrl(url);
+
+                    newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
+
                 } catch (
                         IOException | PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
@@ -591,33 +552,15 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
     }
 
-    public static String getBaseUrl(String urlString) {
+    Thread thread;
 
-        if (urlString == null) {
-            return null;
-        }
-
-        try {
-            URL url = URI.create(urlString).toURL();
-            return url.getProtocol() + "://" + url.getAuthority() + "/";
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    List ScrapedImgUrls = new ArrayList();
-    int ScrapedImgUrls_position = 0;
-    List ScrapedTables = new ArrayList();
-    int ScrapedTables_position = 0;
-    List ScrapedDiv = new ArrayList();
-    int ScrapedDiv_position = 0;
-
+    @SuppressLint("ClickableViewAccessibility")
     public void onJsuopResult() {
 
 
         String BaseUrl = getBaseUrl(url);
 
-        String[] Titel = doc.title().split("\\|");
+        String[] Titel = doc.title().split("\\||von");
         Elements Pages = doc.select("p");
         String summary = "";
 
@@ -637,8 +580,15 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         binding.nrFieldName.setText(Titel[0]);
 
         // NAME DES AUTORS
+        String url_Autor = getBaseUrl(url).substring(url.indexOf(".") + 1).replace("/", "");
+        String _Autor = "";
+
         if (Titel.length > 1)
-            binding.nrFieldAutor.setText(Titel[1]);
+            _Autor = Titel[1].trim() + " [" + url_Autor + "]";
+
+        if (Titel.length > 2)
+            _Autor = Titel[1].trim() + " (" + Titel[2].trim() + ")" + " [" + url_Autor + "]";
+
 
         // BILDER
         for (Element image : images) {
@@ -651,9 +601,111 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             ScrapedImgUrls.add(ImageUrl);
         }
 
-        ScrapedImgUrls.add("");
+
+        updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
+
+        // TABELLE
+        for (Element table : tables) {
+            String tableresult = Jsoup_parse.TableResult(table);
+            ScrapedTables.add(tableresult);
+        }
+
+        // extra code für "einfachbacken"
+        String einfachbacken = html;
+        int found = einfachbacken.indexOf("recipeIngredient");
+        if (found != -1) {
+            einfachbacken = html.substring(found, html.length());
+            einfachbacken = html.substring(html.indexOf("[") + 1, html.indexOf("]"));
+            einfachbacken = html.replace("\",\"", "\n").replace("\"", "");
+            ScrapedTables.add(einfachbacken);
+        }
 
 
+        // Summary
+
+        // extra code für chefkoch
+        Elements chefkoch = doc.select("div.ds-box");
+        List<String> lresult = new ArrayList<>();
+
+        for (Element element : chefkoch) {
+
+            String result = element.text();
+            ;
+
+            if (result.length() > 20)
+                lresult.add(result);
+        }
+        ScrapedSummary.addAll(lresult);
+
+
+        for (Element Page : Pages)
+            summary += Page.text();
+
+        ScrapedSummary.add(summary);
+        ScrapedSummary.sort((s1, s2) -> s1.length() - s2.length());
+
+        if (ScrapedImgUrls.size() == 0)
+            ScrapedImgUrls.add("");
+        if (ScrapedTables.size() == 0)
+            ScrapedTables.add("");
+        if (ScrapedSummary.size() == 0)
+            ScrapedSummary.add("");
+
+        binding.nrFieldAutor.setText(_Autor);
+        binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+        binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
+        binding.nrFieldZutaten.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.requestFocus();
+            }
+        });
+        binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            public void onSwipeRight() {
+                binding.nrFieldImage.requestFocus();
+                hideKeyboard(activityReference);
+
+                ScrapedTables_position -= 1;
+                if (ScrapedTables_position < 0)
+                    ScrapedTables_position = ScrapedTables.size() - 1;
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            public void onSwipeLeft() {
+                binding.nrFieldImage.requestFocus();
+                hideKeyboard(activityReference);
+
+                ScrapedTables_position++;
+                if (ScrapedTables_position >= ScrapedTables.size())
+                    ScrapedTables_position = 0;
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        binding.nrFieldSummary.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            public void onSwipeRight() {
+                binding.nrFieldImage.requestFocus();
+                hideKeyboard(activityReference);
+
+                ScrapedSummary_position -= 1;
+                if (ScrapedSummary_position < 0)
+                    ScrapedSummary_position = ScrapedSummary.size() - 1;
+                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            public void onSwipeLeft() {
+                binding.nrFieldImage.requestFocus();
+                hideKeyboard(activityReference);
+
+                ScrapedSummary_position++;
+                if (ScrapedSummary_position >= ScrapedSummary.size())
+                    ScrapedSummary_position = 0;
+                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position).toString(), Toast.LENGTH_SHORT).show();
+            }
+        });
         binding.nrFieldImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
 
             @SuppressLint("ClickableViewAccessibility")
@@ -675,61 +727,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
 
         });
-
-        updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
-
-        // TABELLE
-        for (Element table : tables) {
-            String tableresult = Jsoup_parse.TableResult(table);
-            ScrapedTables.add(tableresult);
-
-        }
-        ScrapedTables.add(html);
-
-        ScrapedTables.add("");
-
-        binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
-
-            @SuppressLint("ClickableViewAccessibility")
-            public void onSwipeRight() {
-                ScrapedTables_position -= 1;
-                if (ScrapedTables_position < 0)
-                    ScrapedTables_position = ScrapedTables.size() - 1;
-                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
-            }
-
-            public void onSwipeLeft() {
-                ScrapedTables_position++;
-                if (ScrapedTables_position >= ScrapedTables.size())
-                    ScrapedTables_position = 0;
-                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
-            }
-
-
-        });
-
-        binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-        binding.nrFieldZutaten.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                view.requestFocus();
-            }
-        });
-
-
-        // Summary
-
-        for (Element Page : Pages)
-            summary += Page.text() + "\n\n --- \n\n";
-
-        binding.nrFieldSummary.setText(summary);
-
         binding.nrButtonTowebview.setVisibility(View.VISIBLE);
-
     }
-
 
     public boolean delete(String _RecDir, String _filename) {
         boolean myFile = true;
@@ -749,7 +748,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         return myFile;
     }
 
-    public String result_from_field() {
+    public void result_from_field() {
 
         String indrigents = binding.nrFieldZutaten.getText().toString().replaceAll("[|;#]", "").trim();
         List<String> indrigentslist = Arrays.asList(indrigents.split("\n"));
@@ -757,7 +756,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         List<String> indrigents_untereinander = new ArrayList<>();
 
         String result = "";
-        String regex = "^([0-9]*[\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9/(),.]*)\\s?(.*)?";
+        String regex = "^([0-9]*[/\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9/(),.]*)\\s?(.*)?";
         Pattern p = Pattern.compile(regex);
 
 
@@ -785,6 +784,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
         }
 
+        _indrigents.clear();
         for (String _item : indrigentslist) {
             if (_item.equals(""))
                 continue;
@@ -805,18 +805,37 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     if (allMatches.get(allMatches.size() - 1).equals("")) {
                         allMatches.set(allMatches.size() - 1, allMatches.get(allMatches.size() - 2));
                         allMatches.set(allMatches.size() - 2, "");
-
                     }
 
-                    result += allMatches.get(0) + ";";
-                    result += allMatches.get(1) + ";";
-                    result += allMatches.get(2) + "#";
+                    Float f;
+
+                    if (allMatches.get(0).equals("1/2")) {
+                        f = 0.5f;
+                    } else if (allMatches.get(0).equals("1/4")) {
+                        f = 0.25f;
+                    } else if (allMatches.get(0).equals("1/3")) {
+                        f = 0.33f;
+                    } else if (allMatches.get(0).equals("3/4")) {
+                        f = 0.75f;
+                    } else {
+                        try {
+                            f = Float.parseFloat(allMatches.get(0));
+                        } catch (Exception e) {
+                            f = 0f;
+                        }
+                    }
+
+                    String amountof = allMatches.get(1).trim();
+
+                    if (amountof.equals(""))
+                        amountof = "x";
+
+                    String indrigent = allMatches.get(2).trim();
+
+                    _indrigents.add(new Indrigent(f, amountof, indrigent, 0));
                 }
             }
         }
-
-
-        return result;
     }
 
     public void resetdescriptions() {
@@ -975,13 +994,17 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        binding = null;
-    }
 
+        binding = null;
+
+        if (thread != null)
+            thread.interrupt();
+
+        thread = null;
+    }
 
     private String saveImage(String name, Bitmap image) {
         String savedImagePath = null;

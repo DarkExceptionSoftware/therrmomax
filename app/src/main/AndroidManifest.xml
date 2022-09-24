@@ -85,6 +85,7 @@
             android:label="@string/title_activity_webview"
             android:launchMode="singleInstance"
             android:theme="@style/MyTransp"
+            android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize" />
 
 

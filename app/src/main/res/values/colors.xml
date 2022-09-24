@@ -23,7 +23,7 @@
     <color name="ind_fleisch">#500600</color>
     <color name="ind_gemüse">#58FF00</color>
     <color name="ind_mopro">#FFFFFF</color>
-    <color name="ind_beilage">#FFFF00</color>
+    <color name="ind_beilage">#FFFF78</color>
     <color name="ind_flüssiges">#002AFF</color>
 
 </resources>

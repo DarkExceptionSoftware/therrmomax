@@ -1,0 +1,57 @@
+﻿.content-table {
+	border-collapse: collapse;
+	margin: 20px 0;
+	font-size: 0.9em;
+	border-radius: 15px 15px 5px 5px;
+	overflow: hidden;
+	box-shadow: 3px 3px 1px rgba(0, 0, 0, 0.2);
+	font-family:"Bahnschrift Condensed";
+	width: 100%;
+	min-width: 300px;
+}
+.content-table thead tr {
+	background-color: green;
+	color: white;
+	text-align: left;
+	font-weight: bold;
+}
+.content-table th, .content-table td {
+
+}
+.content-table tbody tr {
+	border: 1px solid black;
+}
+.content-table tbody tr:nth-of-type(even){
+	background-color:#f3f3f3;
+}
+.content-table tbody td:nth-of-type(1){
+	padding:5px 5px;
+
+	background-color:aqua;
+	text-align:right;
+    width: 1%;
+    white-space: nowrap;
+}
+.content-table tbody td:nth-of-type(2){
+	padding:5px 5px;
+
+	background-color:#FFFF78;
+		text-align:left;
+		    width: 1%;
+    white-space: nowrap;
+}
+.content-table tbody td:nth-of-type(3){
+	background-color:lightgreen;
+	padding:1px 5px;
+
+}
+.content-table tbody tr:last-of-type {
+	border-bottom: 5px solid green;
+}
+h2 {
+		padding:0 5px;
+	font-size: small;
+	font-weight:normal;
+	text-align:left;
+
+}

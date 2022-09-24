@@ -173,6 +173,10 @@ public class RecipeModel implements Serializable, Parcelable {
         return INDRIGENTS;
     }
 
+    public void setINDRIGENTS(List<Indrigent> indrigends){
+        INDRIGENTS = indrigends;
+    }
+
     public Bitmap getPicture() {
         return picture;
     }
@@ -232,6 +236,7 @@ public class RecipeModel implements Serializable, Parcelable {
         this.Summary = "";
         this.CryptedID = "";
         this.filename = "";
+        this.url = "";
 
         String ImageDir = context.getApplicationInfo().dataDir + "/files/rImages/";
         ImagePath = ImageDir + "noimage.png";
@@ -394,6 +399,7 @@ public class RecipeModel implements Serializable, Parcelable {
 
             this.id = o.getId();
         this.name =  o.getName();
+        this.url = o.getUrl();
         this.creator =  o.getCreator();
         this.Summary =  o.getSummary();
         this.tips =  o.getTips();

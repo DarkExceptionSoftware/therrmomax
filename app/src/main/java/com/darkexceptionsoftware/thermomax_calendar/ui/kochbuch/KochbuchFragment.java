@@ -205,7 +205,8 @@ public class KochbuchFragment extends Fragment implements if_RecycleViewOnClickL
             case R.id.menu_recipe_3:
                 intent = new Intent(activityReference, WebViewClass.class);
                 intent.putExtra("action", "findWeb");
-                intent.putExtra("url", "file:///android_asset/index.html");
+                intent.putExtra("url", "file:///android_asset/newrecipe.html?noparse");
+               // intent.putExtra("url", "file:///android_asset/index.html?noparse");
                 startActivityForResult(intent, 1);
                 break;
 

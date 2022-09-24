@@ -34,5 +34,8 @@
     <string name="nr_desc_preview_on">Vorschau</string>
     <string name="nr_desc_preview_off">Nochmal bearbeiten</string>
     <string name="nr_button_browserback"><![CDATA[<<< zurück zum Browser]]></string>
+    <string name="Ja">Ja</string>
+    <string name="nein">Nein</string>
+    <string name="wv_close_text">Möchtest du den Browser schliessen?</string>
 
 </resources>
