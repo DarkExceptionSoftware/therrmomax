@@ -37,5 +37,8 @@
     <string name="Ja">Ja</string>
     <string name="nein">Nein</string>
     <string name="wv_close_text">Möchtest du den Browser schliessen?</string>
+    <string name="nr_desc_indrigents_tip">Trage eine Zutat pro Zeile im Format MENGE - MAßEINHEIT - NAME ein. (Beispiel: 3 x Eier</string>
+    <string name="nr_desc_summary_tipp">Beschreibe die Vorgehensweise. Mache nach jedem Schritt einen Absatz</string>
+    <string name="nr_desc_name_tipp">Gib deinem Rezept einen Namen</string>
 
 </resources>

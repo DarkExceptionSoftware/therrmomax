@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -20,30 +19,24 @@ import android.text.format.Time;
 
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
+import android.widget.BaseExpandableListAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.exifinterface.media.ExifInterface;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.darkexceptionsoftware.thermomax_calendar.MainActivity;
 import com.darkexceptionsoftware.thermomax_calendar.OnSwipeTouchListener;
 import com.darkexceptionsoftware.thermomax_calendar.R;
 import com.darkexceptionsoftware.thermomax_calendar.data.Indrigent;
@@ -52,15 +45,12 @@ import com.darkexceptionsoftware.thermomax_calendar.data.if_IOnBackPressed;
 import com.darkexceptionsoftware.thermomax_calendar.databinding.FragmentEditrecipeBinding;
 import com.darkexceptionsoftware.thermomax_calendar.web.Jsoup_parse;
 
-import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -71,40 +61,36 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, View.OnTouchListener, ViewTreeObserver.OnScrollChangedListener {
+public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, View.OnTouchListener {
     boolean previewmode = false;
     int previousSpinnerState = 0;
     String url;
     boolean hasscrapedata;
-    List<String> ScrapedImgUrls = new ArrayList<String>();
+    List<String> ScrapedImgUrls = new ArrayList<>();
     int ScrapedImgUrls_position = 0;
-    List<String> ScrapedTables = new ArrayList<String>();
+    List<String> ScrapedTables = new ArrayList<>();
     int ScrapedTables_position = 0;
-    List<String> ScrapedDiv = new ArrayList<String>();
+    List<String> ScrapedDiv = new ArrayList<>();
     int ScrapedDiv_position = 0;
-    List<String> ScrapedSummary = new ArrayList<String>();
+    List<String> ScrapedSummary = new ArrayList<>();
     int ScrapedSummary_position = 0;
+    Thread thread;
     private Activity activityReference;
-    private ScrollView mScrollView;
     private FragmentEditrecipeBinding binding;
-    private Bitmap myBitmap;
     private boolean untereinander = false;
     private RecipeModel info;
     private boolean local = false;
     private List<Indrigent> _indrigents;
-    private Uri picUri;
     private long recipeid = 0;
     private int position;
     private boolean isediting = false;
     private Intent returnIntent = new Intent();
     private Document doc, doc_stripped;
-    private ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
 
-            });
     private String html = "";
 
     public NewRecipe() {
@@ -113,31 +99,6 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
     public NewRecipe(Activity _activityReference) {
 
         this.activityReference = _activityReference;
-    }
-
-    private static Bitmap rotateImageIfRequired(Bitmap img, Uri selectedImage) throws IOException {
-
-        ExifInterface ei = new ExifInterface(selectedImage.getPath());
-        int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-
-        switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                return rotateImage(img, 90);
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                return rotateImage(img, 180);
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                return rotateImage(img, 270);
-            default:
-                return img;
-        }
-    }
-
-    private static Bitmap rotateImage(Bitmap img, int degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-        img.recycle();
-        return rotatedImg;
     }
 
     public static String getBaseUrl(String urlString) {
@@ -180,20 +141,12 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     public void onResourceReady(@NonNull Bitmap bitmap, @Nullable Transition<? super Bitmap> transition) {
 
                         if (!local) {
-                            Boolean permission = false;
-                            if (ContextCompat.checkSelfPermission(
+                            boolean permission = ContextCompat.checkSelfPermission(
                                     getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                                    PackageManager.PERMISSION_GRANTED) {
-                                // You can use the API that requires the permission.
-                                permission = true;
-                            } else {
-                                // You can directly ask for the permission.
-                                // The registered ActivityResultCallback gets the result of this request.
-                                //MainActivity.requestPermissionLauncher.launch(
-                                //       Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                            }
+                                    PackageManager.PERMISSION_GRANTED;
+                            // You can use the API that requires the permission.
 
-                            String int_path = "";
+                            String int_path;
 
                             if (permission && save) {
                                 int_path = saveImage(info.getId() + "", bitmap);   // save your bitmap
@@ -246,12 +199,11 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                     html = e.toString();
                 }
 
-
                 NewRecipe newRecipe = this;
 
                 thread = new Thread() {
                     public void run() {
-                        Jsoup_parse jparse = null;
+                        Jsoup_parse jparse;
 
                         try {
                             jparse = new Jsoup_parse(activityReference);
@@ -261,13 +213,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
                             hasscrapedata = true;
                             Activity ref = NewRecipe.this;
-                            ref.runOnUiThread(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    newRecipe.onJsuopResult();
-                                }
-                            });
+                            ref.runOnUiThread(newRecipe::onJsuopResult);
                             super.run();
 
 
@@ -293,9 +239,6 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 binding.nrFieldName.setText(info.getName());
                 binding.nrFieldAutor.setText(info.getCreator());
 
-                boolean success = true;
-
-
                 String get_image_from;
                 local = false;
                 if (info.getImagePath_internal().equals("")) {
@@ -310,15 +253,14 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 binding.nrFieldSummary.setText(info.getSummary());
 
                 String result = "";
-                for (Indrigent ind : info.getINDRIGENTS()) {
+                for (Indrigent ind : info.getINDRIGENTS())
                     result += ind.getAmountString() + " " + ind.getAmountof() + " " + ind.getName() + "\n";
-                }
+
                 binding.nrFieldZutaten.setText(result);
 
                 recipeid = info.getId();
             }
         }
-
 
         if (intent != null) {
             position = intent.getIntExtra("pos", -1);
@@ -331,228 +273,181 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
         }
         // switch
+
         Switch _switch = binding.switch1;
         Spinner spinner = binding.spinner;
 
-        _switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    untereinander = true;
-                    spinner.setVisibility(View.VISIBLE);
-                    binding.spinnerText.setVisibility(View.VISIBLE);
-                } else {
-                    untereinander = false;
-                    spinner.setVisibility(View.GONE);
-                    binding.spinnerText.setVisibility(View.GONE);
+        _switch.setOnCheckedChangeListener((CompoundButton buttonView, boolean isChecked) -> {
+            if (isChecked) {
+                untereinander = true;
+                spinner.setVisibility(View.VISIBLE);
+                binding.spinnerText.setVisibility(View.VISIBLE);
+            } else {
+                untereinander = false;
+                spinner.setVisibility(View.GONE);
+                binding.spinnerText.setVisibility(View.GONE);
 
-                }
             }
         });
 
-
         // spinner
-
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         for (int i = 2; i <= 3; i++) {
             list.add(i + "");
         }
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, list);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(dataAdapter);
 
-
-        binding.nrButtonTowebview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                returnIntent = new Intent();
-                returnIntent.putExtra("action", "tobrowser");
-                returnIntent.putExtra("url", url);
-                setResult(Activity.RESULT_OK, returnIntent);
-                finish();
-            }
+        binding.nrButtonTowebview.setOnClickListener(view -> {
+            returnIntent = new Intent();
+            returnIntent.putExtra("action", "tobrowser");
+            returnIntent.putExtra("url", url);
+            setResult(Activity.RESULT_OK, returnIntent);
+            finish();
         });
-        binding.nrFieldImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivityForResult(getPickImageChooserIntent(), 200);
-            }
-        });
+        binding.nrFieldImage.setOnClickListener(view -> startActivityForResult(getPickImageChooserIntent(), 200));
+        binding.nrFieldImage.setOnLongClickListener(view -> {
+            Bitmap bitmap = ((BitmapDrawable) binding.nrFieldImage.getDrawable()).getBitmap();
+            String name = binding.nrFieldName.getText().toString();
+            MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), bitmap, "Image title.jpg", null);
+            Toast.makeText(getApplicationContext(), name, Toast.LENGTH_SHORT).show();
 
-        binding.nrFieldImage.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                Bitmap bitmap = ((BitmapDrawable) binding.nrFieldImage.getDrawable()).getBitmap();
+            return true;
+        });
+        binding.nrButtonPreview.setOnClickListener(view -> {
+            if (previewmode) {
+                previewmode = false;
+
+                binding.nrWebview.setVisibility(View.GONE);
+                binding.nrFieldZutaten.setVisibility(View.VISIBLE);
+                binding.switch1.setVisibility(View.VISIBLE);
+                binding.spinnerText.setVisibility(previousSpinnerState);
+                binding.spinner.setVisibility(previousSpinnerState);
+                binding.nrButtonPreview.setText(R.string.nr_desc_preview_on);
+                binding.nrButtonSubmit.setVisibility(View.GONE);
+            } else {
+                previousSpinnerState = binding.spinner.getVisibility();
+                previewmode = true;
+                binding.nrWebview.setVisibility(View.VISIBLE);
+                binding.nrFieldZutaten.setVisibility(View.GONE);
+                binding.switch1.setVisibility(View.GONE);
+                binding.spinnerText.setVisibility(View.GONE);
+                binding.spinner.setVisibility(View.GONE);
+                binding.nrButtonPreview.setText(R.string.nr_desc_preview_off);
+                binding.nrButtonSubmit.setVisibility(View.VISIBLE);
+
+
+                result_from_field();
+
+
+                String builder2 = "<!DOCTYPE html>\n" +
+                        "<html><head>\n" +
+                        "<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n" +
+                        "<title>Ohne_Titel_1</title>\n" +
+                        "<link href=\"file:///android_asset/table_style.css\" rel=\"stylesheet\">" +
+                        "</head><body>\n" +
+                        "<table class=\"content-table\">\n" +
+                        "<thead>" +
+                        "<tr>" +
+                        "<th><h2>Mg.</h2></th>" +
+                        "<th><h2>Eh.</h2></th>" +
+                        "<th><h2>Zutat</h2></th></tr></thead>";
+
+
+                for (Indrigent item : _indrigents) {
+                    builder2 += "<tr>";
+
+                    String _t = item.getAmount().toString();
+
+                    if (_t.equals("0.0")) {
+                        _t = "1";
+
+                    } else {
+                        _t = _t.replace(".0", "");
+
+                    }
+                    builder2 += "<td>" + _t + "</td>";
+                    builder2 += "<td>" + item.getAmountof() + "</td>";
+                    builder2 += "<td>" + item.getName() + "</td>";
+
+                    builder2 += "</tr>";
+                }
+                builder2 += "</table></body></html>";
+                final String mimeType = "text/html";
+                final String encoding = "UTF-8";
+                binding.nrWebview.loadDataWithBaseURL("", builder2, mimeType, encoding, "");
+
+            }
+
+        });
+        binding.nrButtonSubmit.setOnClickListener(view -> {
+            try {
+
                 String name = binding.nrFieldName.getText().toString();
-                MediaStore.Images.Media.insertImage(getApplicationContext().getContentResolver(), bitmap, "Image title.jpg", null);
-                Toast.makeText(getApplicationContext(), name, Toast.LENGTH_SHORT).show();
+                String Creator = binding.nrFieldAutor.getText().toString();
+                String summary = binding.nrFieldSummary.getText().toString();
 
-                return true;
+                if (recipeid == 0) recipeid = System.currentTimeMillis();
+
+                Bitmap bm = ((BitmapDrawable) binding.nrFieldImage.getDrawable()).getBitmap();
+                String ImagePath = saveImage(recipeid + "", bm);
+
+                String RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
+                delete(RecDir, recipeid + "");
+
+                RecipeModel newRecipe = new RecipeModel(getApplicationContext());
+                newRecipe.setId(recipeid);
+                newRecipe.setName(name);
+                newRecipe.setCreator(Creator);
+
+                newRecipe.setImagePath(ImagePath);
+                newRecipe.setImagePath_internal(ImagePath);
+
+                newRecipe.setINDRIGENTS(_indrigents);
+                newRecipe.setSummary(summary);
+                newRecipe.setUrl(url);
+
+                newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
+
+            } catch (
+                    IOException | PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
             }
-        });
 
+            if (isediting) {
+                returnIntent = new Intent();
+                returnIntent.putExtra("action", "edit");
+                returnIntent.putExtra("result", "");
+                returnIntent.putExtra("pos", position);
 
-        binding.nrButtonPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (previewmode) {
-                    previewmode = false;
-
-                    binding.nrWebview.setVisibility(View.GONE);
-                    binding.nrFieldZutaten.setVisibility(View.VISIBLE);
-                    binding.switch1.setVisibility(View.VISIBLE);
-                    binding.spinnerText.setVisibility(previousSpinnerState);
-                    binding.spinner.setVisibility(previousSpinnerState);
-                    binding.nrButtonPreview.setText(R.string.nr_desc_preview_on);
-                    binding.nrButtonSubmit.setVisibility(View.GONE);
-                } else {
-                    previousSpinnerState = binding.spinner.getVisibility();
-                    previewmode = true;
-                    binding.nrWebview.setVisibility(View.VISIBLE);
-                    binding.nrFieldZutaten.setVisibility(View.GONE);
-                    binding.switch1.setVisibility(View.GONE);
-                    binding.spinnerText.setVisibility(View.GONE);
-                    binding.spinner.setVisibility(View.GONE);
-                    binding.nrButtonPreview.setText(R.string.nr_desc_preview_off);
-                    binding.nrButtonSubmit.setVisibility(View.VISIBLE);
-
-
-                    result_from_field();
-
-
-                    String builder2 = "<!DOCTYPE html>\n" +
-                            "<html><head>\n" +
-                            "<meta content=\"text/html; charset=utf-8\" http-equiv=\"Content-Type\">\n" +
-                            "<title>Ohne_Titel_1</title>\n" +
-                            "<link href=\"file:///android_asset/table_style.css\" rel=\"stylesheet\">" +
-                            "</head><body>\n" +
-                            "<table class=\"content-table\">\n" +
-                            "<thead>" +
-                            "<tr>" +
-                            "<th><h2>Mg.</h2></th>" +
-                            "<th><h2>Eh.</h2></th>" +
-                            "<th><h2>Zutat</h2></th></tr></thead>";
-
-
-                    for (Indrigent item : _indrigents) {
-                        builder2 += "<tr>";
-
-                        String _t = item.getAmount().toString();
-
-                        if (_t.equals("0.0")) {
-                            _t = "1";
-
-                        } else {
-                            _t = _t.replace(".0", "");
-
-                        }
-                        builder2 += "<td>" + _t + "</td>";
-                        builder2 += "<td>" + item.getAmountof() + "</td>";
-                        builder2 += "<td>" + item.getName() + "</td>";
-
-                        builder2 += "</tr>";
-                    }
-                    builder2 += "</table></body></html>";
-                    final String mimeType = "text/html";
-                    final String encoding = "UTF-8";
-                    binding.nrWebview.loadDataWithBaseURL("", builder2, mimeType, encoding, "");
-
-                }
-
+                setResult(Activity.RESULT_OK, returnIntent);
+            } else {
+                returnIntent = new Intent();
+                returnIntent.putExtra("action", "findWeb");
+                returnIntent.putExtra("result", "");
+                setResult(Activity.RESULT_OK, returnIntent);
             }
+            finish();
         });
+        binding.nrFieldName.setOnFocusChangeListener((view, b) -> {
+            resetdescriptions();
 
-
-        binding.nrButtonSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-
-                    String name = binding.nrFieldName.getText().toString();
-                    String Creator = binding.nrFieldAutor.getText().toString();
-                    String summary = binding.nrFieldSummary.getText().toString();
-
-                    if (recipeid == 0) {
-                        Time time = new Time();
-                        time.setToNow();
-                        recipeid = time.toMillis(false);
-                    }
-
-                    Bitmap bm = ((BitmapDrawable) binding.nrFieldImage.getDrawable()).getBitmap();
-                    String ImagePath = saveImage(recipeid + "", bm);
-
-                    String RecDir = activityReference.getApplicationContext().getApplicationInfo().dataDir + "/files/";
-                    delete(RecDir, recipeid + "");
-
-                    RecipeModel newRecipe = new RecipeModel(getApplicationContext());
-                    newRecipe.setId(recipeid);
-                    newRecipe.setName(name);
-                    newRecipe.setCreator(Creator);
-
-                    newRecipe.setImagePath(ImagePath);
-                    newRecipe.setImagePath_internal(ImagePath);
-
-                    newRecipe.setINDRIGENTS(_indrigents);
-                    newRecipe.setSummary(summary);
-                    newRecipe.setUrl(url);
-
-                    newRecipe.serialize(RecDir, "" + newRecipe.getId() + ".rcp");
-
-                } catch (
-                        IOException | PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                if (isediting) {
-                    returnIntent = new Intent();
-                    returnIntent.putExtra("action", "edit");
-                    returnIntent.putExtra("result", "");
-                    returnIntent.putExtra("pos", position);
-
-                    setResult(Activity.RESULT_OK, returnIntent);
-                } else {
-                    returnIntent = new Intent();
-                    returnIntent.putExtra("action", "findWeb");
-                    returnIntent.putExtra("result", "");
-                    setResult(Activity.RESULT_OK, returnIntent);
-                }
-                finish();
-            }
+            binding.nrDescName.setText(R.string.nr_desc_name_tipp);
         });
+        binding.nrFieldZutaten.setOnFocusChangeListener((view, b) -> {
+            resetdescriptions();
 
-        binding.nrFieldName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                resetdescriptions();
-
-                binding.nrDescName.setText("Gib deinem Rezept einen Namen");
-            }
+            binding.nrDescIndrigents.setText(R.string.nr_desc_indrigents_tip);
         });
-
-        binding.nrFieldZutaten.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                resetdescriptions();
-
-                binding.nrDescIndrigents.setText("Trage eine Zutat pro Zeile im Format MENGE - MAßEINHEIT - NAME ein. (Beispiel: 3 x Eier");
-            }
+        binding.nrFieldSummary.setOnFocusChangeListener((view, b) -> {
+            resetdescriptions();
+            binding.nrDescSummary.setText(R.string.nr_desc_summary_tipp);
         });
-
-        binding.nrFieldSummary.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                resetdescriptions();
-                binding.nrDescSummary.setText("Beschreibe die Vorgehensweise. Mache nach jedem Schritt einen Absatz");
-            }
-        });
-
         View view = binding.getRoot();
-
         setContentView(view);
-
     }
-
-    Thread thread;
 
     @SuppressLint("ClickableViewAccessibility")
     public void onJsuopResult() {
@@ -560,89 +455,56 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
         String BaseUrl = getBaseUrl(url);
 
-        String[] Titel = doc.title().split("\\||von");
-        Elements Pages = doc.select("p");
-        String summary = "";
-
-        Elements images = doc.getElementsByTag("img");
-        Elements tables = doc.select("table"); //select the first table.
-        Elements dividers = doc.select("div.recipe--full__ingredients");
-
-
-        // ZUTATEN
-        for (Element div : dividers)
-            ScrapedDiv.add(div.toString().replace("&quot", ""));
-
-        ScrapedDiv.sort(Comparator.comparingInt(String::length).reversed());
-
-
         // NAME DES REZEPTS
+        String[] Titel = doc.title().split("\\||von");
         binding.nrFieldName.setText(Titel[0]);
 
         // NAME DES AUTORS
         String url_Autor = getBaseUrl(url).substring(url.indexOf(".") + 1).replace("/", "");
         String _Autor = "";
-
         if (Titel.length > 1)
             _Autor = Titel[1].trim() + " [" + url_Autor + "]";
-
-        if (Titel.length > 2)
+        else if (Titel.length > 2)
             _Autor = Titel[1].trim() + " (" + Titel[2].trim() + ")" + " [" + url_Autor + "]";
+        else
+            _Autor = Titel[0].trim().substring(Titel[0].indexOf(" - ") + 3) + " [" + url_Autor + "]";
 
 
         // BILDER
+        Elements images = doc.getElementsByTag("img");
         for (Element image : images) {
-
             String ImageUrl = image.attr("src");
-
             if (ImageUrl.startsWith("/"))
                 ImageUrl = BaseUrl + ImageUrl;
 
+            if (ImageUrl.matches("^.*jpg|^.*bmp|^.*png"))
             ScrapedImgUrls.add(ImageUrl);
         }
+        updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position), false);
 
 
-        updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
+        Elements dividers = doc.select("div.recipe--full__ingredients");
 
-        // TABELLE
-        for (Element table : tables) {
-            String tableresult = Jsoup_parse.TableResult(table);
-            ScrapedTables.add(tableresult);
+        // ZUTATEN
+
+        if (url_Autor.matches("einfachbacken.de|daskochrezept.de")) {
+            tablefromscript("recipeIngredient");
+            summaryfrompagetext();
+        } else if (url_Autor.equals("chefkoch.de")) {
+            tablefromtable();
+            summaryfromdiv("div.ds-box");
+        } else if (url_Autor.equals("essen-und-trinken.de")) {
+            tablefrommixed("x-beautify-number", "p.recipe-ingredients__label.u-typo.u-typo--recipe-ingredients-text");
+            summaryfromdiv("div.group.group--preparation-steps");
+        } else {
+
+            tablefromscript("recipeIngredient");
+            summaryfrompagetext();
         }
 
-        // extra code für "einfachbacken"
-        String einfachbacken = html;
-        int found = einfachbacken.indexOf("recipeIngredient");
-        if (found != -1) {
-            einfachbacken = html.substring(found, html.length());
-            einfachbacken = html.substring(html.indexOf("[") + 1, html.indexOf("]"));
-            einfachbacken = html.replace("\",\"", "\n").replace("\"", "");
-            ScrapedTables.add(einfachbacken);
-        }
-
-
-        // Summary
-
-        // extra code für chefkoch
-        Elements chefkoch = doc.select("div.ds-box");
-        List<String> lresult = new ArrayList<>();
-
-        for (Element element : chefkoch) {
-
-            String result = element.text();
-            ;
-
-            if (result.length() > 20)
-                lresult.add(result);
-        }
-        ScrapedSummary.addAll(lresult);
-
-
-        for (Element Page : Pages)
-            summary += Page.text();
-
-        ScrapedSummary.add(summary);
-        ScrapedSummary.sort((s1, s2) -> s1.length() - s2.length());
+        // for (Element div : dividers)
+        //    ScrapedDiv.add(div.toString().replace("&quot", ""));
+        // ScrapedDiv.sort(Comparator.comparingInt(String::length).reversed());
 
         if (ScrapedImgUrls.size() == 0)
             ScrapedImgUrls.add("");
@@ -652,14 +514,9 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             ScrapedSummary.add("");
 
         binding.nrFieldAutor.setText(_Autor);
-        binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-        binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
-        binding.nrFieldZutaten.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                view.requestFocus();
-            }
-        });
+        binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position));
+        binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position));
+        binding.nrFieldZutaten.setOnClickListener(View::requestFocus);
         binding.nrFieldZutaten.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
             public void onSwipeRight() {
                 binding.nrFieldImage.requestFocus();
@@ -668,8 +525,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 ScrapedTables_position -= 1;
                 if (ScrapedTables_position < 0)
                     ScrapedTables_position = ScrapedTables.size() - 1;
-                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position));
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position), Toast.LENGTH_SHORT).show();
             }
 
             public void onSwipeLeft() {
@@ -679,8 +536,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 ScrapedTables_position++;
                 if (ScrapedTables_position >= ScrapedTables.size())
                     ScrapedTables_position = 0;
-                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position).toString(), Toast.LENGTH_SHORT).show();
+                binding.nrFieldZutaten.setText(ScrapedTables.get(ScrapedTables_position));
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedTables_position + 1) + "/" + ScrapedTables.size() + ") " + ScrapedTables.get(ScrapedTables_position), Toast.LENGTH_SHORT).show();
             }
         });
         binding.nrFieldSummary.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
@@ -691,8 +548,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 ScrapedSummary_position -= 1;
                 if (ScrapedSummary_position < 0)
                     ScrapedSummary_position = ScrapedSummary.size() - 1;
-                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position).toString(), Toast.LENGTH_SHORT).show();
+                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position));
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position), Toast.LENGTH_SHORT).show();
             }
 
             public void onSwipeLeft() {
@@ -702,8 +559,8 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 ScrapedSummary_position++;
                 if (ScrapedSummary_position >= ScrapedSummary.size())
                     ScrapedSummary_position = 0;
-                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position).toString());
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position).toString(), Toast.LENGTH_SHORT).show();
+                binding.nrFieldSummary.setText(ScrapedSummary.get(ScrapedSummary_position));
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedSummary_position + 1) + "/" + ScrapedSummary.size() + ") " + ScrapedSummary.get(ScrapedSummary_position), Toast.LENGTH_SHORT).show();
             }
         });
         binding.nrFieldImage.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
@@ -713,21 +570,95 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                 ScrapedImgUrls_position -= 1;
                 if (ScrapedImgUrls_position < 0)
                     ScrapedImgUrls_position = ScrapedImgUrls.size() - 1;
-                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position), false);
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position), Toast.LENGTH_SHORT).show();
             }
 
             public void onSwipeLeft() {
                 ScrapedImgUrls_position++;
                 if (ScrapedImgUrls_position >= ScrapedImgUrls.size())
                     ScrapedImgUrls_position = 0;
-                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), false);
-                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position).toString(), Toast.LENGTH_SHORT).show();
+                updateimage(ScrapedImgUrls.get(ScrapedImgUrls_position), false);
+                Toast.makeText(getApplicationContext(), "(" + (ScrapedImgUrls_position + 1) + "/" + ScrapedImgUrls.size() + ") " + ScrapedImgUrls.get(ScrapedImgUrls_position), Toast.LENGTH_SHORT).show();
             }
 
 
         });
         binding.nrButtonTowebview.setVisibility(View.VISIBLE);
+    }
+
+    public void tablefromscript(String keyword) {
+        String einfachbacken = html;
+        int found = einfachbacken.indexOf(keyword);
+        if (found != -1) {
+            einfachbacken = einfachbacken.substring(found);
+            einfachbacken = einfachbacken.substring(einfachbacken.indexOf("[") + 1, einfachbacken.indexOf("]"));
+            einfachbacken = einfachbacken.replace("\",\"", "\n").replace("\"", "");
+            ScrapedTables.add(einfachbacken);
+        }
+    }
+
+    public void tablefrommixed(String keyword, String keyword2) {
+        Elements list1 = doc.select(keyword);
+        Elements list2 = doc.select(keyword2);
+        String result = "";
+        for (int i = 0; i < list1.size() && i < list2.size(); i++) {
+            String check_for_empty = list1.get(i).text().trim();
+            if (check_for_empty.equals(""))
+                check_for_empty = "1 x";
+
+            String check_for_double = list2.get(i).text().trim();
+            String[] split = check_for_double.split(" ");
+
+            if (split.length > 2)
+                if (split[0].equals(split[1]))
+                    check_for_double = check_for_double.substring(split[0].length() + 1,check_for_double.length() );
+
+            result += check_for_empty + " " + check_for_double + "\n";
+        }
+        ScrapedTables.add(result);
+    }
+
+    public void tablefromquery(String keyword) {
+        Elements chefkoch = doc.select(keyword);
+        List<String> lresult = new ArrayList<>();
+        for (Element element : chefkoch) {
+            String result = element.text();
+            lresult.add(result);
+        }
+        ScrapedTables.addAll(lresult);
+        ScrapedTables.sort(Comparator.comparingInt(String::length).reversed());
+    }
+
+    public void tablefromtable() {
+        // TABELLE
+        Elements tables = doc.select("table"); //select the first table.
+
+        for (Element table : tables) {
+            String tableresult = Jsoup_parse.TableResult(table);
+            ScrapedTables.add(tableresult);
+        }
+    }
+
+    public void summaryfrompagetext() {
+        Elements Pages = doc.select("p");
+        String summary = "";
+        for (Element Page : Pages)
+            summary += Page.text();
+        ScrapedSummary.add(summary);
+        ScrapedSummary.sort(Comparator.comparingInt(String::length));
+    }
+
+    public void summaryfromdiv(String keyword) {
+        Elements chefkoch = doc.select(keyword);
+        List<String> lresult = new ArrayList<>();
+        for (Element element : chefkoch) {
+            String result = element.text();
+            if (result.length() > 40)
+                lresult.add(result);
+        }
+        ScrapedSummary.addAll(lresult);
+        ScrapedSummary.sort(Comparator.comparingInt(String::length).reversed());
     }
 
     public boolean delete(String _RecDir, String _filename) {
@@ -752,13 +683,9 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
         String indrigents = binding.nrFieldZutaten.getText().toString().replaceAll("[|;#]", "").trim();
         List<String> indrigentslist = Arrays.asList(indrigents.split("\n"));
-
         List<String> indrigents_untereinander = new ArrayList<>();
-
-        String result = "";
         String regex = "^([0-9]*[/\\.,]?[0-9]*)\\s*([a-zA-ZÄäÖöÜüß0-9/(),.]*)\\s?(.*)?";
         Pattern p = Pattern.compile(regex);
-
 
         if (untereinander) {
             int step = Integer.parseInt(binding.spinner.getSelectedItem().toString());
@@ -789,9 +716,9 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
             if (_item.equals(""))
                 continue;
 
-            List<String> allMatches = new ArrayList<String>();
+            List<String> allMatches = new ArrayList<>();
 
-            if (_item.toString().matches(regex)) {
+            if (_item.matches(regex)) {
                 Matcher m = p.matcher(_item);
 
 
@@ -807,22 +734,28 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
                         allMatches.set(allMatches.size() - 2, "");
                     }
 
-                    Float f;
+                    float f;
 
-                    if (allMatches.get(0).equals("1/2")) {
-                        f = 0.5f;
-                    } else if (allMatches.get(0).equals("1/4")) {
-                        f = 0.25f;
-                    } else if (allMatches.get(0).equals("1/3")) {
-                        f = 0.33f;
-                    } else if (allMatches.get(0).equals("3/4")) {
-                        f = 0.75f;
-                    } else {
-                        try {
-                            f = Float.parseFloat(allMatches.get(0));
-                        } catch (Exception e) {
-                            f = 0f;
-                        }
+                    switch (allMatches.get(0)) {
+                        case "1/2":
+                            f = 0.5f;
+                            break;
+                        case "1/4":
+                            f = 0.25f;
+                            break;
+                        case "1/3":
+                            f = 0.33f;
+                            break;
+                        case "3/4":
+                            f = 0.75f;
+                            break;
+                        default:
+                            try {
+                                f = Float.parseFloat(allMatches.get(0));
+                            } catch (Exception e) {
+                                f = 0f;
+                            }
+                            break;
                     }
 
                     String amountof = allMatches.get(1).trim();
@@ -850,16 +783,6 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         return false;
     }
 
-    @Override
-    public void onScrollChanged() {
-        View view = mScrollView.getChildAt(mScrollView.getChildCount() - 1);
-        int topDetector = mScrollView.getScrollY();
-        int bottomDetector = view.getBottom() - (mScrollView.getHeight() + mScrollView.getScrollY());
-        if (bottomDetector == 0) {
-
-        }
-    }
-
     private Uri getCaptureImageOutputUri() {
         Uri outputFileUri = null;
         File getImage = getExternalCacheDir();
@@ -874,7 +797,7 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
         // Determine Uri of camera image to save.
         Uri outputFileUri = getCaptureImageOutputUri();
 
-        List<Intent> allIntents = new ArrayList();
+        List<Intent> allIntents = new ArrayList<>();
         PackageManager packageManager = getPackageManager();
 
         // collect all camera intents
@@ -941,8 +864,9 @@ public class NewRecipe extends AppCompatActivity implements if_IOnBackPressed, V
 
             ImageView imageView = binding.nrFieldImage;
 
+            Bitmap myBitmap;
             if (getPickImageResultUri(data) != null) {
-                picUri = getPickImageResultUri(data);
+                Uri picUri = getPickImageResultUri(data);
 
                 try {
                     myBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), picUri);

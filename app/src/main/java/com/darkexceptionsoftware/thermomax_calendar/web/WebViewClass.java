@@ -83,6 +83,7 @@ public class WebViewClass extends AppCompatActivity {
     private Uri targeturi;
     private String html;
 
+    private boolean leftmenuopen = true;
     // region implements Constructor
     public WebViewClass() {
     }
@@ -292,7 +293,8 @@ public class WebViewClass extends AppCompatActivity {
         rightmenuParse.setOnClickListener(v -> {
 
             if (scrape == 0) {
-                myWebView.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");
+                MyJS = new MyJavaScriptInterface(this);
+                myWebView.addJavascriptInterface(MyJS, "HtmlViewer");
                 scrape = 1;
                 // myWebView.loadUrl(targeturi.toString());
                 myWebView.loadUrl( "javascript:window.location.reload( true )" );
@@ -304,8 +306,11 @@ public class WebViewClass extends AppCompatActivity {
                 finalWebViewFab1.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.colorPrimaryDark)));
 
             } else if (scrape == 3) {
-                html = MyJavaScriptInterface.getResult();
+                html = MyJS.getResult();
 
+                myWebView.removeJavascriptInterface("HtmlViewer");
+                MyJS.reset();
+                MyJS = null;
                 dismiss();
             }
 
@@ -417,7 +422,7 @@ public class WebViewClass extends AppCompatActivity {
         myWebView.loadUrl(url);
 
     }
-    boolean leftmenuopen = true;
+    MyJavaScriptInterface MyJS;
     private void dismiss() {
 
 
@@ -601,16 +606,16 @@ public class WebViewClass extends AppCompatActivity {
     }
 
 
-    static class MyJavaScriptInterface {
+    class MyJavaScriptInterface {
 
-        private static String result = "";
+        private String result = "";
         private Context ctx;
 
         MyJavaScriptInterface(Context ctx) {
             this.ctx = ctx;
         }
 
-        public static String getResult() {
+        public String getResult() {
             return result;
         }
 
@@ -620,6 +625,11 @@ public class WebViewClass extends AppCompatActivity {
                     .setPositiveButton(android.R.string.ok, null).setCancelable(false).create().show();
                     */
             result = html;
+        }
+
+        public void reset(){
+            result = null;
+            ctx = null;
         }
 
     }
